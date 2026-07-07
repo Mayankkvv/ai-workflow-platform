@@ -1,8 +1,14 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
+import connectDB from "./config/db.js";
+
+connectDB();
 
 const app = express();
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({
