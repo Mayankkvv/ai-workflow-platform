@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.js";
-import { signupSchema } from "../validators/authValidator.js";
+import { signupSchema, loginSchema } from "../validators/authValidator.js";
+import { generateAccessToken, generateRefreshToken } from "../services/tokenService.js";
 
 export const signup = async (req, res) => {
   try {
@@ -43,6 +44,66 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.error("Signup error:", error.message);
+    return res.status(500).json({
+      message: "Something went wrong. Please try again.",
+    });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const parsed = loginSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const { email, password } = parsed.data;
+
+    const user = await User.findOne({ email }).select("+password");
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "Login successful",
+      accessToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error.message);
     return res.status(500).json({
       message: "Something went wrong. Please try again.",
     });
