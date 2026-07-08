@@ -8,6 +8,8 @@ import authRoutes from "./routes/authRoutes.js";
 
 connectDB();
 
+
+
 const app = express();
 
 app.use(express.json());
@@ -23,7 +25,6 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../models/user.js";
 import { signupSchema, loginSchema } from "../validators/authValidator.js";
 import { generateAccessToken, generateRefreshToken } from "../services/tokenService.js";
 
