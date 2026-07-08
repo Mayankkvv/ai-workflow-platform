@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
-import User from "../models/user.js";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 import { signupSchema, loginSchema } from "../validators/authValidator.js";
 import { generateAccessToken, generateRefreshToken } from "../services/tokenService.js";
 
@@ -104,6 +105,88 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error.message);
+    return res.status(500).json({
+      message: "Something went wrong. Please try again.",
+    });
+  }
+};
+
+export const refresh = async (req, res) => {
+  try {
+    const incomingRefreshToken = req.cookies.refreshToken;
+
+    if (!incomingRefreshToken) {
+      return res.status(401).json({
+        message: "Not authorized, no refresh token provided",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(incomingRefreshToken, process.env.JWT_REFRESH_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        message: "Refresh token is invalid or expired",
+      });
+    }
+
+    const user = await User.findById(decoded.userId).select("+refreshToken");
+
+    if (!user || user.refreshToken !== incomingRefreshToken) {
+      return res.status(401).json({
+        message: "Refresh token is invalid or expired",
+      });
+    }
+
+    const newAccessToken = generateAccessToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "Token refreshed successfully",
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    console.error("Refresh error:", error.message);
+    return res.status(500).json({
+      message: "Something went wrong. Please try again.",
+    });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const incomingRefreshToken = req.cookies.refreshToken;
+
+    if (incomingRefreshToken) {
+      try {
+        const decoded = jwt.verify(incomingRefreshToken, process.env.JWT_REFRESH_SECRET);
+        await User.findByIdAndUpdate(decoded.userId, { refreshToken: null });
+      } catch (error) {
+        // Token was already invalid/expired — nothing to clean up in the database
+      }
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    return res.status(200).json({
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout error:", error.message);
     return res.status(500).json({
       message: "Something went wrong. Please try again.",
     });
