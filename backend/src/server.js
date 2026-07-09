@@ -5,10 +5,9 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import workflowRoutes from "./routes/workflowRoutes.js";
 
 connectDB();
-
-
 
 const app = express();
 
@@ -25,6 +24,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/workflows", workflowRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
