@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { getWorkflows, createWorkflow } from "../services/workflowService.js";
 import useAuthStore from "../store/authStore.js";
 
@@ -84,9 +85,10 @@ function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {workflows.map((workflow) => (
-              <div
+              <Link
                 key={workflow._id}
-                className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                to={`/workflows/${workflow._id}`}
+                className="block bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-colors"
               >
                 <h3 className="font-medium text-gray-800">{workflow.name}</h3>
                 <p className="text-sm text-gray-500 mt-1">
@@ -95,7 +97,7 @@ function DashboardPage() {
                 <p className="text-xs text-gray-400 mt-2">
                   {workflow.isActive ? "Active" : "Draft"}
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         )}
