@@ -17,6 +17,7 @@ import {
   toBackendEdges,
 } from "../utils/workflowMappers.js";
 import { NODE_TYPES } from "../utils/nodeTypes.js";
+import NodeConfigPanel from "../components/NodeConfigPanel.jsx";
 
 function WorkflowBuilderPage() {
   const { id } = useParams();
@@ -30,6 +31,7 @@ function WorkflowBuilderPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
 
   useEffect(() => {
     const fetchWorkflow = async () => {
@@ -53,6 +55,20 @@ function WorkflowBuilderPage() {
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
+
+  const onNodeClick = useCallback((event, node) => {
+    setSelectedNodeId(node.id);
+  }, []);
+
+  const handleConfigChange = (nodeId, newConfig) => {
+    setNodes((prev) =>
+      prev.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, config: newConfig } }
+          : node
+      )
+    );
+  };
 
   const handleAddNode = (nodeType, label) => {
     const newNode = {
@@ -92,6 +108,8 @@ function WorkflowBuilderPage() {
     }
   };
 
+  const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -130,8 +148,8 @@ function WorkflowBuilderPage() {
         </div>
       </div>
 
-      <div className="flex flex-1">
-        <div className="w-56 border-r border-gray-200 bg-white p-4 space-y-2">
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-56 border-r border-gray-200 bg-white p-4 space-y-2 overflow-y-auto">
           <p className="text-xs font-semibold text-gray-400 uppercase mb-2">
             Add a node
           </p>
@@ -153,12 +171,19 @@ function WorkflowBuilderPage() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeClick={onNodeClick}
             fitView
           >
             <Background />
             <Controls />
           </ReactFlow>
         </div>
+
+        <NodeConfigPanel
+          selectedNode={selectedNode}
+          onConfigChange={handleConfigChange}
+          onClose={() => setSelectedNodeId(null)}
+        />
       </div>
     </div>
   );
