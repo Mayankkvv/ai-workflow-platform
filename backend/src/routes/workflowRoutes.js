@@ -6,6 +6,7 @@ import {
   getWorkflowById,
   updateWorkflow,
   deleteWorkflow,
+  executeWorkflow,
 } from "../controllers/workflowController.js";
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.get("/", getWorkflows);
 router.get("/:id", getWorkflowById);
 router.put("/:id", updateWorkflow);
 router.delete("/:id", deleteWorkflow);
+router.post("/:id/execute", executeWorkflow);
 
 export default router;

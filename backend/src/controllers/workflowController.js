@@ -1,4 +1,5 @@
 import Workflow from "../models/Workflow.js";
+import workflowQueue from "../queues/workflowQueue.js";
 import { createWorkflowSchema, updateWorkflowSchema } from "../validators/workflowValidator.js";
 
 export const createWorkflow = async (req, res) => {
@@ -146,6 +147,39 @@ export const deleteWorkflow = async (req, res) => {
     });
   } catch (error) {
     console.error("Delete workflow error:", error.message);
+    return res.status(500).json({
+      message: "Something went wrong. Please try again.",
+    });
+  }
+};
+
+
+export const executeWorkflow = async (req, res) => {
+  try {
+    const workflow = await Workflow.findById(req.params.id);
+
+    if (!workflow) {
+      return res.status(404).json({
+        message: "Workflow not found",
+      });
+    }
+
+    if (workflow.userId.toString() !== req.userId) {
+      return res.status(403).json({
+        message: "You do not have access to this workflow",
+      });
+    }
+
+    const job = await workflowQueue.add("execute", {
+      workflowId: workflow._id.toString(),
+    });
+
+    return res.status(202).json({
+      message: "Workflow execution started",
+      jobId: job.id,
+    });
+  } catch (error) {
+    console.error("Execute workflow error:", error.message);
     return res.status(500).json({
       message: "Something went wrong. Please try again.",
     });
