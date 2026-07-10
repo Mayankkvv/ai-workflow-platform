@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getExecutionLogs } from "../services/workflowService.js";
 import { getNodeLabel } from "../utils/nodeTypes.js";
+import { useWorkflowSocket } from "../hooks/useWorkflowSocket.js";
 
 function ExecutionHistoryPage() {
   const { id } = useParams();
@@ -10,21 +11,34 @@ function ExecutionHistoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState(null);
+  const [liveNotice, setLiveNotice] = useState("");
+
+  const fetchExecutions = async () => {
+    try {
+      const data = await getExecutionLogs(id);
+      setExecutions(data.executions);
+    } catch (err) {
+      setError("Could not load execution history.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchExecutions = async () => {
-      try {
-        const data = await getExecutionLogs(id);
-        setExecutions(data.executions);
-      } catch (err) {
-        setError("Could not load execution history.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchExecutions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useWorkflowSocket(id, (data) => {
+    setLiveNotice(
+      data.status === "completed"
+        ? "A new execution just completed — list updated"
+        : "A new execution just failed — list updated"
+    );
+    fetchExecutions();
+
+    setTimeout(() => setLiveNotice(""), 4000);
+  });
 
   const toggleExpanded = (executionId) => {
     setExpandedId((prev) => (prev === executionId ? null : executionId));
@@ -42,6 +56,12 @@ function ExecutionHistoryPage() {
           </Link>
           <h1 className="text-xl font-bold text-gray-800">Execution History</h1>
         </div>
+
+        {liveNotice && (
+          <div className="mb-4 p-3 rounded bg-blue-50 text-blue-700 text-sm">
+            {liveNotice}
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">

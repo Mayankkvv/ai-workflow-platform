@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useWorkflowSocket } from "../hooks/useWorkflowSocket.js";
 import { useParams, Link } from "react-router-dom";
 import {
   ReactFlow,
@@ -36,7 +37,16 @@ function WorkflowBuilderPage() {
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+  const [liveExecutionStatus, setLiveExecutionStatus] = useState("");
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+
+  useWorkflowSocket(id, (data) => {
+    setLiveExecutionStatus(
+      data.status === "completed"
+        ? "✓ Execution completed — check History for details"
+        : `✕ Execution failed: ${data.error}`
+    );
+  });
 
   useEffect(() => {
     const fetchWorkflow = async () => {
@@ -160,6 +170,9 @@ function WorkflowBuilderPage() {
             <span className="text-sm text-green-600">{saveMessage}</span>
           )}
           {error && <span className="text-sm text-red-600">{error}</span>}
+          {liveExecutionStatus && (
+            <span className="text-sm text-gray-700">{liveExecutionStatus}</span>
+          )}
           <Link
             to={`/workflows/${id}/executions`}
             className="text-sm text-gray-600 hover:text-gray-900 px-3 py-2"
