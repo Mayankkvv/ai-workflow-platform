@@ -1,8 +1,9 @@
 import "dotenv/config";
+
 import { Worker } from "bullmq";
 import connection from "../config/redis.js";
 import connectDB from "../config/db.js";
-import Workflow from "../models/Workflow.js";
+import { runWorkflow } from "../execution/runWorkflow.js";
 
 connectDB();
 
@@ -13,19 +14,14 @@ const worker = new Worker(
 
     console.log(`Processing job ${job.id} for workflow ${workflowId}`);
 
-    const workflow = await Workflow.findById(workflowId);
+    const executionLog = await runWorkflow(workflowId);
 
-    if (!workflow) {
-      throw new Error(`Workflow ${workflowId} not found`);
-    }
+    console.log(`Execution finished with status: ${executionLog.status}`);
 
-    console.log(`Workflow "${workflow.name}" has ${workflow.nodes.length} node(s)`);
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    console.log(`Finished processing workflow ${workflowId}`);
-
-    return { status: "completed" };
+    return {
+      status: executionLog.status,
+      executionLogId: executionLog._id,
+    };
   },
   { connection }
 );
