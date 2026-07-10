@@ -24,3 +24,13 @@ export const deleteWorkflow = async (id) => {
   const response = await api.delete(`/workflows/${id}`);
   return response.data;
 };
+
+export const executeWorkflow = async (id) => {
+  const response = await api.post(`/workflows/${id}/execute`);
+  return response.data;
+};
+
+export const getExecutionLogs = async (id) => {
+  const response = await api.get(`/workflows/${id}/executions`);
+  return response.data;
+};

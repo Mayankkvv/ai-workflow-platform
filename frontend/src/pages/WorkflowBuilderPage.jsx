@@ -9,7 +9,11 @@ import {
   useEdgesState,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { getWorkflowById, updateWorkflow } from "../services/workflowService.js";
+import {
+  getWorkflowById,
+  updateWorkflow,
+  executeWorkflow,
+} from "../services/workflowService.js";
 import {
   toReactFlowNodes,
   toReactFlowEdges,
@@ -29,6 +33,7 @@ function WorkflowBuilderPage() {
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -108,6 +113,23 @@ function WorkflowBuilderPage() {
     }
   };
 
+  const handleExecute = async () => {
+    setIsExecuting(true);
+    setSaveMessage("");
+    setError("");
+
+    try {
+      await executeWorkflow(id);
+      setSaveMessage("Execution started — check history for results shortly");
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Could not start execution. Please try again.";
+      setError(message);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
 
   if (isLoading) {
@@ -138,6 +160,19 @@ function WorkflowBuilderPage() {
             <span className="text-sm text-green-600">{saveMessage}</span>
           )}
           {error && <span className="text-sm text-red-600">{error}</span>}
+          <Link
+            to={`/workflows/${id}/executions`}
+            className="text-sm text-gray-600 hover:text-gray-900 px-3 py-2"
+          >
+            History
+          </Link>
+          <button
+            onClick={handleExecute}
+            disabled={isExecuting}
+            className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+          >
+            {isExecuting ? "Starting..." : "▶ Run"}
+          </button>
           <button
             onClick={handleSave}
             disabled={isSaving}

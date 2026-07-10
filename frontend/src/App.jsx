@@ -3,6 +3,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import WorkflowBuilderPage from "./pages/WorkflowBuilderPage.jsx";
+import ExecutionHistoryPage from "./pages/ExecutionHistoryPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 function App() {
@@ -23,6 +24,14 @@ function App() {
         element={
           <ProtectedRoute>
             <WorkflowBuilderPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workflows/:id/executions"
+        element={
+          <ProtectedRoute>
+            <ExecutionHistoryPage />
           </ProtectedRoute>
         }
       />

@@ -1,6 +1,7 @@
 import Workflow from "../models/Workflow.js";
 import workflowQueue from "../queues/workflowQueue.js";
 import { createWorkflowSchema, updateWorkflowSchema } from "../validators/workflowValidator.js";
+import ExecutionLog from "../models/ExecutionLog.js";
 
 export const createWorkflow = async (req, res) => {
   try {
@@ -180,6 +181,37 @@ export const executeWorkflow = async (req, res) => {
     });
   } catch (error) {
     console.error("Execute workflow error:", error.message);
+    return res.status(500).json({
+      message: "Something went wrong. Please try again.",
+    });
+  }
+};
+
+export const getExecutionLogs = async (req, res) => {
+  try {
+    const workflow = await Workflow.findById(req.params.id);
+
+    if (!workflow) {
+      return res.status(404).json({
+        message: "Workflow not found",
+      });
+    }
+
+    if (workflow.userId.toString() !== req.userId) {
+      return res.status(403).json({
+        message: "You do not have access to this workflow",
+      });
+    }
+
+    const executions = await ExecutionLog.find({ workflowId: workflow._id }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({
+      executions,
+    });
+  } catch (error) {
+    console.error("Get execution logs error:", error.message);
     return res.status(500).json({
       message: "Something went wrong. Please try again.",
     });
