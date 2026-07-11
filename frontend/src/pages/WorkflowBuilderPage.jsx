@@ -32,6 +32,8 @@ function WorkflowBuilderPage() {
 
   const [workflowName, setWorkflowName] = useState("");
   const [description, setDescription] = useState("");
+  const [isActive, setIsActive] = useState(false);
+  const [webhookToken, setWebhookToken] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -44,7 +46,7 @@ function WorkflowBuilderPage() {
     setLiveExecutionStatus(
       data.status === "completed"
         ? "✓ Execution completed — check History for details"
-        : `✕ Execution failed: ${data.error}`
+        : `✕ Execution failed: ${data.error}`,
     );
   });
 
@@ -54,6 +56,8 @@ function WorkflowBuilderPage() {
         const data = await getWorkflowById(id);
         setWorkflowName(data.workflow.name);
         setDescription(data.workflow.description || "");
+        setIsActive(data.workflow.isActive);
+        setWebhookToken(data.workflow.webhookToken || "");
         setNodes(toReactFlowNodes(data.workflow.nodes));
         setEdges(toReactFlowEdges(data.workflow.edges));
       } catch (err) {
@@ -68,7 +72,7 @@ function WorkflowBuilderPage() {
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    [setEdges],
   );
 
   const onNodeClick = useCallback((event, node) => {
@@ -80,8 +84,8 @@ function WorkflowBuilderPage() {
       prev.map((node) =>
         node.id === nodeId
           ? { ...node, data: { ...node.data, config: newConfig } }
-          : node
-      )
+          : node,
+      ),
     );
   };
 
@@ -114,6 +118,7 @@ function WorkflowBuilderPage() {
         description,
         nodes: toBackendNodes(nodes),
         edges: toBackendEdges(edges),
+        isActive,
       });
       setSaveMessage("Saved successfully");
     } catch (err) {
@@ -133,7 +138,8 @@ function WorkflowBuilderPage() {
       setSaveMessage("Execution started — check history for results shortly");
     } catch (err) {
       const message =
-        err.response?.data?.message || "Could not start execution. Please try again.";
+        err.response?.data?.message ||
+        "Could not start execution. Please try again.";
       setError(message);
     } finally {
       setIsExecuting(false);
@@ -154,7 +160,10 @@ function WorkflowBuilderPage() {
     <div className="h-screen flex flex-col">
       <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-4">
-          <Link to="/dashboard" className="text-sm text-gray-500 hover:text-gray-800">
+          <Link
+            to="/dashboard"
+            className="text-sm text-gray-500 hover:text-gray-800"
+          >
             ← Back
           </Link>
           <input
@@ -179,6 +188,15 @@ function WorkflowBuilderPage() {
           >
             History
           </Link>
+          <label className="flex items-center gap-2 text-sm text-gray-600">
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              className="rounded"
+            />
+            Active
+          </label>
           <button
             onClick={handleExecute}
             disabled={isExecuting}
@@ -231,6 +249,7 @@ function WorkflowBuilderPage() {
           selectedNode={selectedNode}
           onConfigChange={handleConfigChange}
           onClose={() => setSelectedNodeId(null)}
+          webhookToken={webhookToken}
         />
       </div>
     </div>

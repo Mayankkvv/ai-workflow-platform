@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 const nodeSchema = new mongoose.Schema(
   {
@@ -79,12 +80,17 @@ const workflowSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    webhookToken: {
+      type: String,
+      unique: true,
+      default: () => crypto.randomBytes(24).toString("hex"),
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const Workflow = mongoose.model("Workflow", workflowSchema);
+const Workflow = mongoose.models.Workflow || mongoose.model("Workflow", workflowSchema);
 
 export default Workflow;

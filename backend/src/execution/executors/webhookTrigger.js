@@ -1,8 +1,8 @@
-const webhookTrigger = async (node) => {
+const webhookTrigger = async (node, input, jobData) => {
   return {
     triggeredAt: new Date().toISOString(),
-    payload: {
-      message: "Sample trigger payload — real webhook receiving will be built in a future step.",
+    payload: jobData?.triggerPayload || {
+      message: "No payload provided — this workflow was likely run manually, not via webhook.",
     },
   };
 };

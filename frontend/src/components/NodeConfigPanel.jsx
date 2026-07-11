@@ -1,6 +1,6 @@
 import { NODE_FIELD_SCHEMAS } from "../utils/nodeFieldSchemas.js";
 
-function NodeConfigPanel({ selectedNode, onConfigChange, onClose }) {
+function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }) {
   if (!selectedNode) {
     return (
       <div className="w-72 border-l border-gray-200 bg-white p-4">
@@ -21,6 +21,9 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose }) {
     });
   };
 
+  const isWebhookTrigger = selectedNode.data.nodeType === "webhookTrigger";
+  const webhookUrl = webhookToken ? `http://localhost:5000/hooks/${webhookToken}` : "";
+
   return (
     <div className="w-72 border-l border-gray-200 bg-white p-4 overflow-y-auto">
       <div className="flex items-center justify-between mb-4">
@@ -34,6 +37,23 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose }) {
           ✕
         </button>
       </div>
+
+      {isWebhookTrigger && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Webhook URL
+          </label>
+          <div className="text-xs bg-gray-50 border border-gray-200 rounded-md p-2 break-all text-gray-600">
+            {webhookUrl}
+          </div>
+          <button
+            onClick={() => navigator.clipboard.writeText(webhookUrl)}
+            className="mt-2 text-xs text-blue-600 hover:text-blue-800"
+          >
+            Copy URL
+          </button>
+        </div>
+      )}
 
       {fields.length === 0 ? (
         <p className="text-sm text-gray-400">

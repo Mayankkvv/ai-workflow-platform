@@ -1,9 +1,9 @@
-import Workflow from "../models/Workflow.js";
+import Workflow from "../models/workflow.js";
 import ExecutionLog from "../models/ExecutionLog.js";
 import executors from "./executors/index.js";
 import { getExecutionOrder, getPredecessorId } from "./graphUtils.js";
 
-export const runWorkflow = async (workflowId) => {
+export const runWorkflow = async (workflowId, jobData = {}) => {
   const workflow = await Workflow.findById(workflowId);
 
   if (!workflow) {
@@ -35,7 +35,7 @@ export const runWorkflow = async (workflowId) => {
     }
 
     try {
-      const output = await executor(node, input);
+      const output = await executor(node, input, jobData);
       context[nodeId] = output;
 
       nodeResults.push({
