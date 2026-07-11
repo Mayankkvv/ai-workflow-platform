@@ -47,4 +47,24 @@ export const NODE_FIELD_SCHEMAS = {
       placeholder: "New result: {{result}}",
     },
   ],
+  githubCreateIssue: [
+    {
+      key: "repo",
+      label: "Repository (owner/repo)",
+      inputType: "text",
+      placeholder: "octocat/Hello-World",
+    },
+    {
+      key: "title",
+      label: "Issue Title",
+      inputType: "text",
+      placeholder: "Bug: {{input.payload.message}}",
+    },
+    {
+      key: "body",
+      label: "Issue Body",
+      inputType: "textarea",
+      placeholder: "Reported via automated workflow.",
+    },
+  ],
 };

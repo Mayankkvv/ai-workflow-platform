@@ -154,6 +154,12 @@ export const refresh = async (req, res) => {
     return res.status(200).json({
       message: "Token refreshed successfully",
       accessToken: newAccessToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Refresh error:", error.message);

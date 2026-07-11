@@ -4,6 +4,7 @@ export const NODE_TYPES = [
   { type: "mongoStore", label: "Store in MongoDB" },
   { type: "slackNotification", label: "Slack Notification" },
   { type: "restApiCall", label: "REST API Call" },
+  { type: "githubCreateIssue", label: "GitHub: Create Issue" },
 ];
 
 export const getNodeLabel = (type) => {

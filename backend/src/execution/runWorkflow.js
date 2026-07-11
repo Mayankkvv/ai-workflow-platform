@@ -1,4 +1,4 @@
-import Workflow from "../models/workflow.js";
+import Workflow from "../models/Workflow.js";
 import ExecutionLog from "../models/ExecutionLog.js";
 import executors from "./executors/index.js";
 import { getExecutionOrder, getPredecessorId } from "./graphUtils.js";
@@ -35,7 +35,8 @@ export const runWorkflow = async (workflowId, jobData = {}) => {
     }
 
     try {
-      const output = await executor(node, input, jobData);
+      const plainNode = typeof node.toObject === "function" ? node.toObject() : node;
+      const output = await executor({ ...plainNode, userId: workflow.userId }, input, jobData);
       context[nodeId] = output;
 
       nodeResults.push({

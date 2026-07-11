@@ -10,6 +10,7 @@ import workflowRoutes from "./routes/workflowRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import { initSocket } from "./config/socket.js";
 import "./queues/workflowQueueEvents.js";
+import integrationRoutes from "./routes/integrationRoutes.js";
 
 connectDB();
 
@@ -39,6 +40,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/workflows", workflowRoutes);
 app.use("/hooks", webhookRoutes);
+app.use("/api/integrations", integrationRoutes);
 
 httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -1,12 +1,44 @@
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import WorkflowBuilderPage from "./pages/WorkflowBuilderPage.jsx";
 import ExecutionHistoryPage from "./pages/ExecutionHistoryPage.jsx";
+import IntegrationsPage from "./pages/IntegrationsPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { refresh } from "./services/authService.js";
+import useAuthStore from "./store/authStore.js";
 
 function App() {
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const data = await refresh();
+        setAuth(data.user, data.accessToken);
+      } catch (err) {
+        clearAuth();
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -32,6 +64,14 @@ function App() {
         element={
           <ProtectedRoute>
             <ExecutionHistoryPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/integrations"
+        element={
+          <ProtectedRoute>
+            <IntegrationsPage />
           </ProtectedRoute>
         }
       />
