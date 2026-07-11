@@ -67,4 +67,13 @@ export const NODE_FIELD_SCHEMAS = {
       placeholder: "Reported via automated workflow.",
     },
   ],
+
+  discordNotification: [
+    {
+      key: "message",
+      label: "Message",
+      inputType: "textarea",
+      placeholder: "New result: {{input.response}}",
+    },
+  ],
 };

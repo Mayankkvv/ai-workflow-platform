@@ -5,6 +5,7 @@ export const NODE_TYPES = [
   { type: "slackNotification", label: "Slack Notification" },
   { type: "restApiCall", label: "REST API Call" },
   { type: "githubCreateIssue", label: "GitHub: Create Issue" },
+  { type: "discordNotification", label: "Discord Notification" },
 ];
 
 export const getNodeLabel = (type) => {

@@ -10,6 +10,11 @@ export const getGithubConnectUrl = async () => {
   return response.data;
 };
 
+export const connectDiscord = async (webhookUrl) => {
+  const response = await api.post("/integrations/discord/connect", { webhookUrl });
+  return response.data;
+};
+
 export const disconnectIntegration = async (provider) => {
   const response = await api.delete(`/integrations/${provider}`);
   return response.data;

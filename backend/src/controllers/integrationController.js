@@ -71,3 +71,31 @@ export const disconnectIntegration = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 };
+
+export const connectDiscord = async (req, res) => {
+  try {
+    const { webhookUrl } = req.body;
+
+    if (!webhookUrl || !webhookUrl.startsWith("https://discord.com/api/webhooks/")) {
+      return res.status(400).json({
+        message: "Please provide a valid Discord webhook URL",
+      });
+    }
+
+    await Integration.findOneAndUpdate(
+      { userId: req.userId, provider: "discord" },
+      {
+        userId: req.userId,
+        provider: "discord",
+        accessToken: encrypt(webhookUrl),
+        providerAccountLabel: "Discord Webhook",
+      },
+      { upsert: true, new: true }
+    );
+
+    return res.status(200).json({ message: "Discord connected successfully" });
+  } catch (error) {
+    console.error("Connect Discord error:", error.message);
+    return res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+};

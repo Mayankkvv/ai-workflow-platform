@@ -3,16 +3,23 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   getIntegrations,
   getGithubConnectUrl,
+  connectDiscord,
   disconnectIntegration,
 } from "../services/integrationService.js";
 
-const PROVIDERS = [{ key: "github", label: "GitHub" }];
+const PROVIDERS = [
+  { key: "github", label: "GitHub" },
+  { key: "discord", label: "Discord" },
+];
 
 function IntegrationsPage() {
   const [searchParams] = useSearchParams();
   const [integrations, setIntegrations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [discordUrlInput, setDiscordUrlInput] = useState("");
+  const [showDiscordForm, setShowDiscordForm] = useState(false);
+  const [isConnectingDiscord, setIsConnectingDiscord] = useState(false);
 
   const fetchIntegrations = async () => {
     try {
@@ -43,6 +50,23 @@ function IntegrationsPage() {
     if (provider === "github") {
       const { url } = await getGithubConnectUrl();
       window.location.href = url;
+    } else if (provider === "discord") {
+      setShowDiscordForm(true);
+    }
+  };
+
+  const handleDiscordSubmit = async () => {
+    setIsConnectingDiscord(true);
+    try {
+      await connectDiscord(discordUrlInput);
+      setMessage("Discord connected successfully");
+      setShowDiscordForm(false);
+      setDiscordUrlInput("");
+      fetchIntegrations();
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Could not connect Discord");
+    } finally {
+      setIsConnectingDiscord(false);
     }
   };
 
@@ -72,31 +96,55 @@ function IntegrationsPage() {
             {PROVIDERS.map((provider) => (
               <div
                 key={provider.key}
-                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4"
+                className="bg-white border border-gray-200 rounded-lg p-4"
               >
-                <div>
-                  <p className="font-medium text-gray-800">{provider.label}</p>
-                  {isConnected(provider.key) && (
-                    <p className="text-xs text-gray-500">
-                      Connected as {getLabel(provider.key)}
-                    </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-800">{provider.label}</p>
+                    {isConnected(provider.key) && (
+                      <p className="text-xs text-gray-500">
+                        Connected as {getLabel(provider.key)}
+                      </p>
+                    )}
+                  </div>
+
+                  {isConnected(provider.key) ? (
+                    <button
+                      onClick={() => handleDisconnect(provider.key)}
+                      className="text-sm text-red-600 hover:text-red-800"
+                    >
+                      Disconnect
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleConnect(provider.key)}
+                      className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700"
+                    >
+                      Connect
+                    </button>
                   )}
                 </div>
 
-                {isConnected(provider.key) ? (
-                  <button
-                    onClick={() => handleDisconnect(provider.key)}
-                    className="text-sm text-red-600 hover:text-red-800"
-                  >
-                    Disconnect
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleConnect(provider.key)}
-                    className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700"
-                  >
-                    Connect
-                  </button>
+                {provider.key === "discord" && showDiscordForm && !isConnected("discord") && (
+                  <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                    <p className="text-xs text-gray-500">
+                      In Discord: Server Settings → Integrations → Webhooks → New Webhook → Copy URL
+                    </p>
+                    <input
+                      type="text"
+                      value={discordUrlInput}
+                      onChange={(e) => setDiscordUrlInput(e.target.value)}
+                      placeholder="https://discord.com/api/webhooks/..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                    <button
+                      onClick={handleDiscordSubmit}
+                      disabled={isConnectingDiscord}
+                      className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {isConnectingDiscord ? "Connecting..." : "Save"}
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
