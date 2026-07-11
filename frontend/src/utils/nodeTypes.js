@@ -3,6 +3,7 @@ export const NODE_TYPES = [
   { type: "groqAI", label: "Groq AI" },
   { type: "mongoStore", label: "Store in MongoDB" },
   { type: "slackNotification", label: "Slack Notification" },
+  { type: "restApiCall", label: "REST API Call" },
 ];
 
 export const getNodeLabel = (type) => {
