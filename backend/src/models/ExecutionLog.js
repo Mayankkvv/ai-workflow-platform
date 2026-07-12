@@ -43,7 +43,7 @@ const executionLogSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["success", "failed"],
+      enum: ["success", "failed", "cancelled"],
       required: true,
     },
     nodeResults: {

@@ -7,6 +7,7 @@ import {
   updateWorkflow,
   deleteWorkflow,
   executeWorkflow,
+  cancelExecution,
   getExecutionLogs,
   renameWorkflow,
 } from "../controllers/workflowController.js";
@@ -22,6 +23,7 @@ router.put("/:id", updateWorkflow);
 router.patch("/:id/rename", renameWorkflow);
 router.delete("/:id", deleteWorkflow);
 router.post("/:id/execute", executeWorkflow);
+router.post("/:id/executions/:jobId/cancel", cancelExecution);
 router.get("/:id/executions", getExecutionLogs);
 
 export default router;

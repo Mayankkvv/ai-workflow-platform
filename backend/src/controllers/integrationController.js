@@ -1,6 +1,9 @@
 import jwt from "jsonwebtoken";
 import Integration from "../models/Integration.js";
 import { encrypt } from "../utils/encryption.js";
+import { testSlackAuth } from "../services/slackService.js";
+import { getValidGoogleAccessToken } from "../services/googleTokenHelper.js";
+import { sendDiscordMessage } from "../services/discordService.js";
 import {
   getGithubAuthorizeUrl,
   exchangeGithubCode,
@@ -17,6 +20,50 @@ import {
   getSlackAuthorizeUrl,
   exchangeSlackCode,
 } from "../services/slackService.js";
+
+export const testIntegration = async (req, res) => {
+  try {
+    const { provider } = req.params;
+
+    const integration = await Integration.findOne({
+      userId: req.userId,
+      provider,
+    }).select("+accessToken");
+
+    if (!integration) {
+      return res.status(404).json({ message: `No ${provider} integration connected` });
+    }
+
+    if (provider === "github") {
+      const token = decrypt(integration.accessToken);
+      const ghUser = await getGithubUser(token);
+      return res.status(200).json({ message: `Connected as ${ghUser.login}` });
+    }
+
+    if (provider === "slack") {
+      const token = decrypt(integration.accessToken);
+      const result = await testSlackAuth(token);
+      return res.status(200).json({ message: `Connected to workspace "${result.team}"` });
+    }
+
+    if (provider === "gmail" || provider === "googledrive") {
+      const token = await getValidGoogleAccessToken(req.userId, provider);
+      const info = await getGoogleUserInfo(token);
+      return res.status(200).json({ message: `Connected as ${info.email}` });
+    }
+
+    if (provider === "discord") {
+      const webhookUrl = decrypt(integration.accessToken);
+      await sendDiscordMessage(webhookUrl, "✅ Connection test successful from AI Workflow Platform");
+      return res.status(200).json({ message: "Test message sent to your Discord channel" });
+    }
+
+    return res.status(400).json({ message: "Unknown provider" });
+  } catch (error) {
+    console.error("Test integration error:", error.message);
+    return res.status(400).json({ message: "Connection test failed — you may need to reconnect." });
+  }
+};
 
 export const connectGithub = async (req, res) => {
   const state = jwt.sign({ userId: req.userId }, process.env.OAUTH_STATE_SECRET, {

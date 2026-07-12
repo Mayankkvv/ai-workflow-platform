@@ -19,11 +19,12 @@ queueEvents.on("completed", async ({ jobId, returnvalue }) => {
     if (!job) return;
 
     const { workflowId } = job.data;
+    const parsed = parseReturnValue(returnvalue);
 
     getIO().to(`workflow:${workflowId}`).emit("execution:update", {
       workflowId,
-      status: "completed",
-      result: parseReturnValue(returnvalue),
+      status: parsed?.status || "completed",
+      result: parsed,
     });
   } catch (error) {
     console.error("QueueEvents completed handler error:", error.message);

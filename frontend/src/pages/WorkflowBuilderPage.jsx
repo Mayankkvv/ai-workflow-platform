@@ -13,6 +13,7 @@ import {
   getWorkflowById,
   updateWorkflow,
   executeWorkflow,
+  cancelExecution,
   deleteWorkflow,
 } from "../services/workflowService.js";
 import {
@@ -42,6 +43,7 @@ function WorkflowBuilderPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [activeJobId, setActiveJobId] = useState(null);
   const [error, setError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -73,14 +75,16 @@ function WorkflowBuilderPage() {
   }, [id, setNodes, setEdges]);
 
   useWorkflowSocket(id, (data) => {
-    setLiveExecutionStatus(
-      data.status === "completed"
-        ? "✓ Execution completed — check History for details"
-        : `✕ Execution failed: ${data.error}`
-    );
-  });
+    setActiveJobId(null);
 
-  // --- Undo/Redo history ---
+    if (data.status === "cancelled") {
+      setLiveExecutionStatus("⏹ Execution was cancelled");
+    } else if (data.status === "completed" || data.status === "success") {
+      setLiveExecutionStatus("✓ Execution completed — check History for details");
+    } else {
+      setLiveExecutionStatus(`✕ Execution failed: ${data.error || "see History for details"}`);
+    }
+  });
 
   const takeSnapshot = () => {
     setHistory((h) => ({
@@ -136,8 +140,6 @@ function WorkflowBuilderPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [history, nodes, edges]);
 
-  // --- Canvas change handlers (wrapped to record history on removals) ---
-
   const handleNodesChangeWithHistory = (changes) => {
     if (changes.some((c) => c.type === "remove")) {
       takeSnapshot();
@@ -164,8 +166,6 @@ function WorkflowBuilderPage() {
   const onNodeDragStart = () => {
     takeSnapshot();
   };
-
-  // --- Node CRUD on the canvas ---
 
   const handleConfigChange = (nodeId, newConfig) => {
     setNodes((prev) =>
@@ -223,8 +223,6 @@ function WorkflowBuilderPage() {
     setNodes((prev) => [...prev, newNode]);
   };
 
-  // --- Save / Execute / Delete workflow ---
-
   const handleSave = async () => {
     setIsSaving(true);
     setSaveMessage("");
@@ -250,9 +248,11 @@ function WorkflowBuilderPage() {
     setIsExecuting(true);
     setSaveMessage("");
     setError("");
+    setLiveExecutionStatus("");
 
     try {
-      await executeWorkflow(id);
+      const data = await executeWorkflow(id);
+      setActiveJobId(data.jobId);
       setSaveMessage("Execution started — check history for results shortly");
     } catch (err) {
       const message =
@@ -260,6 +260,17 @@ function WorkflowBuilderPage() {
       setError(message);
     } finally {
       setIsExecuting(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!activeJobId) return;
+
+    try {
+      const data = await cancelExecution(id, activeJobId);
+      setSaveMessage(data.message);
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not cancel execution");
     }
   };
 
@@ -348,12 +359,21 @@ function WorkflowBuilderPage() {
             Delete
           </button>
 
+          {activeJobId && (
+            <button
+              onClick={handleCancel}
+              className="text-sm text-orange-600 hover:text-orange-800 px-3 py-2"
+            >
+              Cancel Run
+            </button>
+          )}
+
           <button
             onClick={handleExecute}
-            disabled={isExecuting}
+            disabled={isExecuting || !!activeJobId}
             className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50"
           >
-            {isExecuting ? "Starting..." : "▶ Run"}
+            {isExecuting ? "Starting..." : activeJobId ? "Running..." : "▶ Run"}
           </button>
           <button
             onClick={handleSave}
@@ -419,4 +439,4 @@ function WorkflowBuilderPage() {
   );
 }
 
-export default WorkflowBuilderPage; 
+export default WorkflowBuilderPage;

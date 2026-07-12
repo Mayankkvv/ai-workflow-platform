@@ -11,6 +11,7 @@ import {
   connectGoogleDrive,
   connectSlack,
   slackCallback,
+  testIntegration,
 } from "../controllers/integrationController.js";
 
 const router = express.Router();
@@ -26,6 +27,7 @@ router.post("/discord/connect", connectDiscord);
 router.get("/gmail/connect", connectGmail);
 router.get("/googledrive/connect", connectGoogleDrive);
 router.get("/slack/connect", connectSlack);
+router.post("/:provider/test", testIntegration);
 router.get("/", listIntegrations);
 router.delete("/:provider", disconnectIntegration);
 

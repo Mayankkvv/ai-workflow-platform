@@ -52,3 +52,20 @@ export const sendSlackMessage = async (botToken, channel, text) => {
 
   return data;
 };
+
+const SLACK_AUTH_TEST_URL = "https://slack.com/api/auth.test";
+
+export const testSlackAuth = async (botToken) => {
+  const response = await fetch(SLACK_AUTH_TEST_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${botToken}` },
+  });
+
+  const data = await response.json();
+
+  if (!data.ok) {
+    throw new Error(`Slack API error: ${data.error}`);
+  }
+
+  return data;
+};

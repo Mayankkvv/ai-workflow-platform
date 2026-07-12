@@ -14,7 +14,7 @@ const worker = new Worker(
 
     console.log(`Processing job ${job.id} for workflow ${workflowId}`);
 
-    const executionLog = await runWorkflow(workflowId, job.data);
+    const executionLog = await runWorkflow(workflowId, job.data, job.id.toString());
 
     console.log(`Execution finished with status: ${executionLog.status}`);
 

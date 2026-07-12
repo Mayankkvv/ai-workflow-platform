@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getExecutionLogs } from "../services/workflowService.js";
+import { getExecutionLogs, executeWorkflow } from "../services/workflowService.js";
 import { getNodeLabel } from "../utils/nodeTypes.js";
 import { useWorkflowSocket } from "../hooks/useWorkflowSocket.js";
 
@@ -12,6 +12,7 @@ function ExecutionHistoryPage() {
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [liveNotice, setLiveNotice] = useState("");
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const fetchExecutions = async () => {
     try {
@@ -31,7 +32,9 @@ function ExecutionHistoryPage() {
 
   useWorkflowSocket(id, (data) => {
     setLiveNotice(
-      data.status === "completed"
+      data.status === "cancelled"
+        ? "An execution was cancelled — list updated"
+        : data.status === "completed" || data.status === "success"
         ? "A new execution just completed — list updated"
         : "A new execution just failed — list updated"
     );
@@ -44,17 +47,41 @@ function ExecutionHistoryPage() {
     setExpandedId((prev) => (prev === executionId ? null : executionId));
   };
 
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    setError("");
+    try {
+      await executeWorkflow(id);
+      setLiveNotice("Retry started — results will appear here shortly");
+      setTimeout(() => setLiveNotice(""), 4000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not start retry");
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Link
-            to={`/workflows/${id}`}
-            className="text-sm text-gray-500 hover:text-gray-800"
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Link
+              to={`/workflows/${id}`}
+              className="text-sm text-gray-500 hover:text-gray-800"
+            >
+              ← Back to builder
+            </Link>
+            <h1 className="text-xl font-bold text-gray-800">Execution History</h1>
+          </div>
+
+          <button
+            onClick={handleRetry}
+            disabled={isRetrying}
+            className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
-            ← Back to builder
-          </Link>
-          <h1 className="text-xl font-bold text-gray-800">Execution History</h1>
+            {isRetrying ? "Starting..." : "↻ Run Again"}
+          </button>
         </div>
 
         {liveNotice && (
@@ -91,6 +118,8 @@ function ExecutionHistoryPage() {
                       className={`text-xs font-medium px-2 py-1 rounded ${
                         execution.status === "success"
                           ? "bg-green-100 text-green-700"
+                          : execution.status === "cancelled"
+                          ? "bg-gray-200 text-gray-600"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
@@ -136,6 +165,11 @@ function ExecutionHistoryPage() {
                         )}
                       </div>
                     ))}
+                    {execution.nodeResults.length === 0 && (
+                      <p className="text-xs text-gray-400">
+                        No nodes ran before this execution was cancelled.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

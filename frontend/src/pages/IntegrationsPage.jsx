@@ -7,6 +7,7 @@ import {
   getGoogleDriveConnectUrl,
   getSlackConnectUrl,
   connectDiscord,
+  testIntegration,
   disconnectIntegration,
 } from "../services/integrationService.js";
 
@@ -26,6 +27,8 @@ function IntegrationsPage() {
   const [discordUrlInput, setDiscordUrlInput] = useState("");
   const [showDiscordForm, setShowDiscordForm] = useState(false);
   const [isConnectingDiscord, setIsConnectingDiscord] = useState(false);
+  const [testingProvider, setTestingProvider] = useState(null);
+  const [testResults, setTestResults] = useState({});
 
   const fetchIntegrations = async () => {
     try {
@@ -46,11 +49,8 @@ function IntegrationsPage() {
     }
   }, []);
 
-  const isConnected = (provider) =>
-    integrations.some((i) => i.provider === provider);
-
-  const getLabel = (provider) =>
-    integrations.find((i) => i.provider === provider)?.providerAccountLabel;
+  const getIntegration = (provider) => integrations.find((i) => i.provider === provider);
+  const isConnected = (provider) => !!getIntegration(provider);
 
   const handleConnect = async (provider) => {
     if (provider === "github") {
@@ -85,8 +85,28 @@ function IntegrationsPage() {
     }
   };
 
+  const handleTest = async (provider) => {
+    setTestingProvider(provider);
+    setTestResults((prev) => ({ ...prev, [provider]: null }));
+    try {
+      const data = await testIntegration(provider);
+      setTestResults((prev) => ({ ...prev, [provider]: { ok: true, message: data.message } }));
+    } catch (err) {
+      setTestResults((prev) => ({
+        ...prev,
+        [provider]: {
+          ok: false,
+          message: err.response?.data?.message || "Test failed",
+        },
+      }));
+    } finally {
+      setTestingProvider(null);
+    }
+  };
+
   const handleDisconnect = async (provider) => {
     await disconnectIntegration(provider);
+    setTestResults((prev) => ({ ...prev, [provider]: null }));
     fetchIntegrations();
   };
 
@@ -99,70 +119,101 @@ function IntegrationsPage() {
         <h1 className="text-xl font-bold text-gray-800 mt-4 mb-6">Integrations</h1>
 
         {message && (
-          <div className="mb-4 p-3 rounded bg-blue-50 text-blue-700 text-sm">
-            {message}
-          </div>
+          <div className="mb-4 p-3 rounded bg-blue-50 text-blue-700 text-sm">{message}</div>
         )}
 
         {isLoading ? (
           <p className="text-gray-500">Loading...</p>
         ) : (
           <div className="space-y-3">
-            {PROVIDERS.map((provider) => (
-              <div
-                key={provider.key}
-                className="bg-white border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-gray-800">{provider.label}</p>
-                    {isConnected(provider.key) && (
-                      <p className="text-xs text-gray-500">
-                        Connected as {getLabel(provider.key)}
-                      </p>
-                    )}
+            {PROVIDERS.map((provider) => {
+              const integration = getIntegration(provider.key);
+              const testResult = testResults[provider.key];
+
+              return (
+                <div
+                  key={provider.key}
+                  className="bg-white border border-gray-200 rounded-lg p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-800">{provider.label}</p>
+                      {integration && (
+                        <>
+                          <p className="text-xs text-gray-500">
+                            Connected as {integration.providerAccountLabel}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Connected on {new Date(integration.createdAt).toLocaleDateString()}
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {integration && (
+                        <button
+                          onClick={() => handleTest(provider.key)}
+                          disabled={testingProvider === provider.key}
+                          className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                        >
+                          {testingProvider === provider.key ? "Testing..." : "Test"}
+                        </button>
+                      )}
+
+                      {isConnected(provider.key) ? (
+                        <button
+                          onClick={() => handleDisconnect(provider.key)}
+                          className="text-sm text-red-600 hover:text-red-800"
+                        >
+                          Disconnect
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleConnect(provider.key)}
+                          className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700"
+                        >
+                          Connect
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  {isConnected(provider.key) ? (
-                    <button
-                      onClick={() => handleDisconnect(provider.key)}
-                      className="text-sm text-red-600 hover:text-red-800"
+                  {testResult && (
+                    <p
+                      className={`text-xs mt-2 ${
+                        testResult.ok ? "text-green-600" : "text-red-600"
+                      }`}
                     >
-                      Disconnect
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleConnect(provider.key)}
-                      className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700"
-                    >
-                      Connect
-                    </button>
+                      {testResult.ok ? "✓" : "✕"} {testResult.message}
+                    </p>
+                  )}
+
+                  {provider.key === "discord" && showDiscordForm && !isConnected("discord") && (
+                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                      <p className="text-xs text-gray-500">
+                        In Discord: Server Settings → Integrations → Webhooks → New Webhook →
+                        Copy URL
+                      </p>
+                      <input
+                        type="text"
+                        value={discordUrlInput}
+                        onChange={(e) => setDiscordUrlInput(e.target.value)}
+                        placeholder="https://discord.com/api/webhooks/..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                      <button
+                        onClick={handleDiscordSubmit}
+                        disabled={isConnectingDiscord}
+                        className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {isConnectingDiscord ? "Connecting..." : "Save"}
+                      </button>
+                    </div>
                   )}
                 </div>
-
-                {provider.key === "discord" && showDiscordForm && !isConnected("discord") && (
-                  <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
-                    <p className="text-xs text-gray-500">
-                      In Discord: Server Settings → Integrations → Webhooks → New Webhook → Copy URL
-                    </p>
-                    <input
-                      type="text"
-                      value={discordUrlInput}
-                      onChange={(e) => setDiscordUrlInput(e.target.value)}
-                      placeholder="https://discord.com/api/webhooks/..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <button
-                      onClick={handleDiscordSubmit}
-                      disabled={isConnectingDiscord}
-                      className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      {isConnectingDiscord ? "Connecting..." : "Save"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -10,16 +10,6 @@ export const getGithubConnectUrl = async () => {
   return response.data;
 };
 
-export const connectDiscord = async (webhookUrl) => {
-  const response = await api.post("/integrations/discord/connect", { webhookUrl });
-  return response.data;
-};
-
-export const disconnectIntegration = async (provider) => {
-  const response = await api.delete(`/integrations/${provider}`);
-  return response.data;
-};
-
 export const getGmailConnectUrl = async () => {
   const response = await api.get("/integrations/gmail/connect");
   return response.data;
@@ -32,5 +22,20 @@ export const getGoogleDriveConnectUrl = async () => {
 
 export const getSlackConnectUrl = async () => {
   const response = await api.get("/integrations/slack/connect");
+  return response.data;
+};
+
+export const connectDiscord = async (webhookUrl) => {
+  const response = await api.post("/integrations/discord/connect", { webhookUrl });
+  return response.data;
+};
+
+export const testIntegration = async (provider) => {
+  const response = await api.post(`/integrations/${provider}/test`);
+  return response.data;
+};
+
+export const disconnectIntegration = async (provider) => {
+  const response = await api.delete(`/integrations/${provider}`);
   return response.data;
 };

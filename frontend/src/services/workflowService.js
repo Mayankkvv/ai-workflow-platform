@@ -20,6 +20,11 @@ export const updateWorkflow = async (id, payload) => {
   return response.data;
 };
 
+export const renameWorkflow = async (id, name) => {
+  const response = await api.patch(`/workflows/${id}/rename`, { name });
+  return response.data;
+};
+
 export const deleteWorkflow = async (id) => {
   const response = await api.delete(`/workflows/${id}`);
   return response.data;
@@ -30,12 +35,12 @@ export const executeWorkflow = async (id) => {
   return response.data;
 };
 
-export const getExecutionLogs = async (id) => {
-  const response = await api.get(`/workflows/${id}/executions`);
+export const cancelExecution = async (id, jobId) => {
+  const response = await api.post(`/workflows/${id}/executions/${jobId}/cancel`);
   return response.data;
 };
 
-export const renameWorkflow = async (id, name) => {
-  const response = await api.patch(`/workflows/${id}/rename`, { name });
+export const getExecutionLogs = async (id) => {
+  const response = await api.get(`/workflows/${id}/executions`);
   return response.data;
 };

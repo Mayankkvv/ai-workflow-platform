@@ -2,8 +2,9 @@ import Workflow from "../models/Workflow.js";
 import ExecutionLog from "../models/ExecutionLog.js";
 import executors from "./executors/index.js";
 import { getExecutionOrder, getPredecessorId } from "./graphUtils.js";
+import redisConnection from "../config/redis.js";
 
-export const runWorkflow = async (workflowId, jobData = {}) => {
+export const runWorkflow = async (workflowId, jobData = {}, jobId = null) => {
   const workflow = await Workflow.findById(workflowId);
 
   if (!workflow) {
@@ -17,7 +18,18 @@ export const runWorkflow = async (workflowId, jobData = {}) => {
   let overallStatus = "success";
 
   for (const nodeId of order) {
-    const node = workflow.nodes.find((n) => n.nodeId === nodeId);
+    if (jobId) {
+      const cancelFlag = await redisConnection.get(`cancel:${jobId}`);
+      if (cancelFlag) {
+        overallStatus = "cancelled";
+        break;
+      }
+    }
+
+    const rawNode = workflow.nodes.find((n) => n.nodeId === nodeId);
+    const plainNode = typeof rawNode.toObject === "function" ? rawNode.toObject() : rawNode;
+    const node = { ...plainNode, userId: workflow.userId };
+
     const executor = executors[node.type];
 
     const predecessorId = getPredecessorId(nodeId, workflow.edges);
@@ -35,8 +47,7 @@ export const runWorkflow = async (workflowId, jobData = {}) => {
     }
 
     try {
-      const plainNode = typeof node.toObject === "function" ? node.toObject() : node;
-      const output = await executor({ ...plainNode, userId: workflow.userId }, input, jobData);
+      const output = await executor(node, input, jobData);
       context[nodeId] = output;
 
       nodeResults.push({
@@ -55,6 +66,10 @@ export const runWorkflow = async (workflowId, jobData = {}) => {
       overallStatus = "failed";
       break;
     }
+  }
+
+  if (jobId) {
+    await redisConnection.del(`cancel:${jobId}`);
   }
 
   const executionLog = await ExecutionLog.create({
