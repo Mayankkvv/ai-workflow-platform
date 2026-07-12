@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { NODE_FIELD_SCHEMAS } from "../utils/nodeFieldSchemas.js";
 
-function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }) {
+function NodeConfigPanel({
+  selectedNode,
+  onConfigChange,
+  onClose,
+  webhookToken,
+  onDeleteNode,
+  onDuplicateNode,
+}) {
   const [newHeaderKey, setNewHeaderKey] = useState("");
   const [newHeaderValue, setNewHeaderValue] = useState("");
 
   if (!selectedNode) {
     return (
       <div className="w-72 border-l border-gray-200 bg-white p-4">
-        <p className="text-sm text-gray-400">
-          Click a node to configure it.
-        </p>
+        <p className="text-sm text-gray-400">Click a node to configure it.</p>
       </div>
     );
   }
@@ -19,10 +24,7 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }
   const config = selectedNode.data.config || {};
 
   const handleFieldChange = (key, value) => {
-    onConfigChange(selectedNode.id, {
-      ...config,
-      [key]: value,
-    });
+    onConfigChange(selectedNode.id, { ...config, [key]: value });
   };
 
   const isWebhookTrigger = selectedNode.data.nodeType === "webhookTrigger";
@@ -33,11 +35,7 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }
 
   const handleAddHeader = () => {
     if (!newHeaderKey.trim()) return;
-
-    handleFieldChange("headers", {
-      ...headers,
-      [newHeaderKey.trim()]: newHeaderValue,
-    });
+    handleFieldChange("headers", { ...headers, [newHeaderKey.trim()]: newHeaderValue });
     setNewHeaderKey("");
     setNewHeaderValue("");
   };
@@ -50,23 +48,31 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }
 
   return (
     <div className="w-72 border-l border-gray-200 bg-white p-4 overflow-y-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-800">
-          {selectedNode.data.label}
-        </h3>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-700 text-sm"
-        >
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-semibold text-gray-800">{selectedNode.data.label}</h3>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-sm">
           ✕
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={() => onDuplicateNode(selectedNode.id)}
+          className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded"
+        >
+          ⧉ Duplicate
+        </button>
+        <button
+          onClick={() => onDeleteNode(selectedNode.id)}
+          className="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded"
+        >
+          🗑 Delete Node
         </button>
       </div>
 
       {isWebhookTrigger && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Webhook URL
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Webhook URL</label>
           <div className="text-xs bg-gray-50 border border-gray-200 rounded-md p-2 break-all text-gray-600">
             {webhookUrl}
           </div>
@@ -82,9 +88,7 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }
       {isRestApiCall && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Method
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
             <select
               value={config.method || "GET"}
               onChange={(e) => handleFieldChange("method", e.target.value)}
@@ -99,9 +103,7 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              URL
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
             <input
               type="text"
               value={config.url || ""}
@@ -112,9 +114,7 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Headers
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Headers</label>
             <div className="space-y-1 mb-2">
               {Object.entries(headers).map(([key, value]) => (
                 <div
@@ -173,9 +173,7 @@ function NodeConfigPanel({ selectedNode, onConfigChange, onClose, webhookToken }
       )}
 
       {fields.length === 0 && !isWebhookTrigger && !isRestApiCall ? (
-        <p className="text-sm text-gray-400">
-          This node has no configurable settings.
-        </p>
+        <p className="text-sm text-gray-400">This node has no configurable settings.</p>
       ) : (
         <div className="space-y-4">
           {fields.map((field) => (
