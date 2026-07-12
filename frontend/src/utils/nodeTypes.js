@@ -7,6 +7,7 @@ export const NODE_TYPES = [
   { type: "githubCreateIssue", label: "GitHub: Create Issue" },
   { type: "discordNotification", label: "Discord Notification" },
   { type: "gmailSendEmail", label: "Gmail: Send Email" },
+  { type: "googleDriveUpload", label: "Google Drive: Upload File" },
 ];
 
 export const getNodeLabel = (type) => {

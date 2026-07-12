@@ -107,3 +107,38 @@ export const sendGmailMessage = async (accessToken, to, subject, body) => {
 
   return data;
 };
+
+const DRIVE_UPLOAD_URL =
+  "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+
+export const uploadToGoogleDrive = async (accessToken, fileName, content, mimeType) => {
+  const boundary = "workflow_platform_boundary";
+
+  const metadata = { name: fileName };
+
+  const body =
+    `--${boundary}\r\n` +
+    `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
+    `${JSON.stringify(metadata)}\r\n` +
+    `--${boundary}\r\n` +
+    `Content-Type: ${mimeType}\r\n\r\n` +
+    `${content}\r\n` +
+    `--${boundary}--`;
+
+  const response = await fetch(DRIVE_UPLOAD_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": `multipart/related; boundary=${boundary}`,
+    },
+    body,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(`Google Drive API error (${response.status}): ${data.error?.message}`);
+  }
+
+  return data;
+};

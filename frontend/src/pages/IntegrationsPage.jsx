@@ -4,6 +4,7 @@ import {
   getIntegrations,
   getGithubConnectUrl,
   getGmailConnectUrl,
+  getGoogleDriveConnectUrl,
   connectDiscord,
   disconnectIntegration,
 } from "../services/integrationService.js";
@@ -12,6 +13,7 @@ const PROVIDERS = [
   { key: "github", label: "GitHub" },
   { key: "discord", label: "Discord" },
   { key: "gmail", label: "Gmail" },
+  { key: "googledrive", label: "Google Drive" },
 ];
 
 function IntegrationsPage() {
@@ -54,6 +56,9 @@ function IntegrationsPage() {
       window.location.href = url;
     } else if (provider === "gmail") {
       const { url } = await getGmailConnectUrl();
+      window.location.href = url;
+    } else if (provider === "googledrive") {
+      const { url } = await getGoogleDriveConnectUrl();
       window.location.href = url;
     } else if (provider === "discord") {
       setShowDiscordForm(true);

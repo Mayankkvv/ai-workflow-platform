@@ -153,3 +153,19 @@ export const googleCallback = async (req, res) => {
     return res.redirect(`${process.env.FRONTEND_URL}/integrations?error=google`);
   }
 };
+
+const GOOGLE_DRIVE_SCOPE =
+  "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
+  
+
+export const connectGoogleDrive = async (req, res) => {
+  const state = jwt.sign(
+    { userId: req.userId, provider: "googledrive" },
+    process.env.OAUTH_STATE_SECRET,
+    { expiresIn: "10m" }
+  );
+
+  const url = getGoogleAuthorizeUrl(state, GOOGLE_DRIVE_SCOPE);
+
+  return res.status(200).json({ url });
+};

@@ -97,4 +97,19 @@ export const NODE_FIELD_SCHEMAS = {
       placeholder: "Details: {{input.response}}",
     },
   ],
+
+  googleDriveUpload: [
+    {
+      key: "fileName",
+      label: "File Name",
+      inputType: "text",
+      placeholder: "output-{{input.payload.id}}.txt",
+    },
+    {
+      key: "content",
+      label: "File Content",
+      inputType: "textarea",
+      placeholder: "{{input.response}}",
+    },
+  ],
 };

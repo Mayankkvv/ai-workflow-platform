@@ -6,6 +6,7 @@ import restApiCall from "./restApiCall.js";
 import githubCreateIssue from "./githubCreateIssue.js";
 import discordNotification from "./discordNotification.js";
 import gmailSendEmail from "./gmailSendEmail.js";
+import googleDriveUpload from "./googleDriveUpload.js";
 
 const executors = {
   webhookTrigger,
@@ -16,6 +17,7 @@ const executors = {
   githubCreateIssue,
   discordNotification,
   gmailSendEmail,
+  googleDriveUpload,
 };
 
 export default executors;

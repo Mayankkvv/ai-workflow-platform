@@ -24,3 +24,8 @@ export const getGmailConnectUrl = async () => {
   const response = await api.get("/integrations/gmail/connect");
   return response.data;
 };
+
+export const getGoogleDriveConnectUrl = async () => {
+  const response = await api.get("/integrations/googledrive/connect");
+  return response.data;
+};

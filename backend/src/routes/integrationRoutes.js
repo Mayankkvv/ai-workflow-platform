@@ -8,6 +8,7 @@ import {
   connectDiscord,
   connectGmail,
   googleCallback,
+  connectGoogleDrive,
 } from "../controllers/integrationController.js";
 
 const router = express.Router();
@@ -20,6 +21,7 @@ router.use(protect);
 router.get("/github/connect", connectGithub);
 router.post("/discord/connect", connectDiscord);
 router.get("/gmail/connect", connectGmail);
+router.get("/googledrive/connect", connectGoogleDrive);
 router.get("/", listIntegrations);
 router.delete("/:provider", disconnectIntegration);
 
