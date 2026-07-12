@@ -6,6 +6,9 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import WorkflowBuilderPage from "./pages/WorkflowBuilderPage.jsx";
 import ExecutionHistoryPage from "./pages/ExecutionHistoryPage.jsx";
 import IntegrationsPage from "./pages/IntegrationsPage.jsx";
+import AccountPage from "./pages/AccountPage.jsx";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { refresh } from "./services/authService.js";
 import useAuthStore from "./store/authStore.js";
@@ -20,7 +23,7 @@ function App() {
       try {
         const data = await refresh();
         setAuth(data.user, data.accessToken);
-      } catch (err) {
+      } catch {
         clearAuth();
       } finally {
         setIsInitializing(false);
@@ -43,6 +46,8 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route
         path="/dashboard"
         element={
@@ -72,6 +77,14 @@ function App() {
         element={
           <ProtectedRoute>
             <IntegrationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/account"
+        element={
+          <ProtectedRoute>
+            <AccountPage />
           </ProtectedRoute>
         }
       />

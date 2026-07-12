@@ -28,7 +28,7 @@ function DashboardPage() {
       try {
         const data = await getWorkflows();
         setWorkflows(data.workflows);
-      } catch (err) {
+      } catch {
         setError("Could not load your workflows. Please try again.");
       } finally {
         setIsLoading(false);
@@ -43,7 +43,7 @@ function DashboardPage() {
     try {
       const data = await createWorkflow("Untitled Workflow", "");
       setWorkflows((prev) => [data.workflow, ...prev]);
-    } catch (err) {
+    } catch {
       setError("Could not create a new workflow. Please try again.");
     } finally {
       setIsCreating(false);
@@ -58,7 +58,7 @@ function DashboardPage() {
         prev.map((w) => (w._id === renameTarget._id ? { ...w, name: newName } : w))
       );
       setRenameTarget(null);
-    } catch (err) {
+    } catch {
       setError("Could not rename the workflow. Please try again.");
     } finally {
       setIsProcessing(false);
@@ -71,7 +71,7 @@ function DashboardPage() {
       await deleteWorkflow(deleteTarget._id);
       setWorkflows((prev) => prev.filter((w) => w._id !== deleteTarget._id));
       setDeleteTarget(null);
-    } catch (err) {
+    } catch {
       setError("Could not delete the workflow. Please try again.");
     } finally {
       setIsProcessing(false);
@@ -88,12 +88,17 @@ function DashboardPage() {
             </h1>
             <p className="text-gray-500 text-sm">{user?.email}</p>
           </div>
-          <button
-            onClick={clearAuth}
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
-            Log out
-          </button>
+          <div>
+            <Link to="/account" className="text-sm text-gray-600 hover:text-gray-900 mr-4">
+              Account
+            </Link>
+            <button
+              onClick={clearAuth}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              Log out
+            </button>
+          </div>
         </div>
 
         <div className="flex justify-between items-center mb-4">

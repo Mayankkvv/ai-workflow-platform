@@ -85,6 +85,11 @@ function LoginPage() {
             Sign up
           </Link>
         </p>
+        <p className="mt-2 text-sm text-center">
+          <Link to="/forgot-password" className="text-blue-600 font-medium">
+            Forgot password?
+          </Link>
+        </p>
       </div>
     </div>
   );

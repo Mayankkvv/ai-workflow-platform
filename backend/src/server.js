@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import userRoutes from "./routes/userRoutes.js";
 import express from "express";
 import http from "http";
 import cors from "cors";
@@ -41,6 +42,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/workflows", workflowRoutes);
 app.use("/hooks", webhookRoutes);
 app.use("/api/integrations", integrationRoutes);
+app.use("/api/users", userRoutes);
 
 httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
