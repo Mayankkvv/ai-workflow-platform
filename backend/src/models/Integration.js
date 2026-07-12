@@ -21,6 +21,10 @@ const integrationSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    tokenExpiresAt: {
+      type: Date,
+      default: null,
+    },
     scope: {
       type: String,
       default: "",

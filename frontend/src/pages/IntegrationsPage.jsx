@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   getIntegrations,
   getGithubConnectUrl,
+  getGmailConnectUrl,
   connectDiscord,
   disconnectIntegration,
 } from "../services/integrationService.js";
@@ -10,6 +11,7 @@ import {
 const PROVIDERS = [
   { key: "github", label: "GitHub" },
   { key: "discord", label: "Discord" },
+  { key: "gmail", label: "Gmail" },
 ];
 
 function IntegrationsPage() {
@@ -49,6 +51,9 @@ function IntegrationsPage() {
   const handleConnect = async (provider) => {
     if (provider === "github") {
       const { url } = await getGithubConnectUrl();
+      window.location.href = url;
+    } else if (provider === "gmail") {
+      const { url } = await getGmailConnectUrl();
       window.location.href = url;
     } else if (provider === "discord") {
       setShowDiscordForm(true);

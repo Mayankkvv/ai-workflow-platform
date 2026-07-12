@@ -7,6 +7,12 @@ import {
   getGithubUser,
 } from "../services/githubService.js";
 
+import {
+  getGoogleAuthorizeUrl,
+  exchangeGoogleCode,
+  getGoogleUserInfo,
+} from "../services/googleService.js";
+
 export const connectGithub = async (req, res) => {
   const state = jwt.sign({ userId: req.userId }, process.env.OAUTH_STATE_SECRET, {
     expiresIn: "10m",
@@ -97,5 +103,53 @@ export const connectDiscord = async (req, res) => {
   } catch (error) {
     console.error("Connect Discord error:", error.message);
     return res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+};
+
+const GMAIL_SCOPE =
+  "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email";
+
+export const connectGmail = async (req, res) => {
+  const state = jwt.sign(
+    { userId: req.userId, provider: "gmail" },
+    process.env.OAUTH_STATE_SECRET,
+    { expiresIn: "10m" }
+  );
+
+  const url = getGoogleAuthorizeUrl(state, GMAIL_SCOPE);
+
+  return res.status(200).json({ url });
+};
+
+export const googleCallback = async (req, res) => {
+  const { code, state } = req.query;
+
+  try {
+    const decoded = jwt.verify(state, process.env.OAUTH_STATE_SECRET);
+    const { userId, provider } = decoded;
+
+    const tokenData = await exchangeGoogleCode(code);
+    const googleUser = await getGoogleUserInfo(tokenData.access_token);
+
+    await Integration.findOneAndUpdate(
+      { userId, provider },
+      {
+        userId,
+        provider,
+        accessToken: encrypt(tokenData.access_token),
+        refreshToken: tokenData.refresh_token
+          ? encrypt(tokenData.refresh_token)
+          : undefined,
+        tokenExpiresAt: new Date(Date.now() + tokenData.expires_in * 1000),
+        scope: tokenData.scope || "",
+        providerAccountLabel: googleUser.email,
+      },
+      { upsert: true, new: true }
+    );
+
+    return res.redirect(`${process.env.FRONTEND_URL}/integrations?connected=${provider}`);
+  } catch (error) {
+    console.error("Google callback error:", error.message);
+    return res.redirect(`${process.env.FRONTEND_URL}/integrations?error=google`);
   }
 };

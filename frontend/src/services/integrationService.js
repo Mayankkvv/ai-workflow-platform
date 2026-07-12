@@ -19,3 +19,8 @@ export const disconnectIntegration = async (provider) => {
   const response = await api.delete(`/integrations/${provider}`);
   return response.data;
 };
+
+export const getGmailConnectUrl = async () => {
+  const response = await api.get("/integrations/gmail/connect");
+  return response.data;
+};

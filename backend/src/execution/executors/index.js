@@ -5,6 +5,7 @@ import slackNotification from "./slackNotification.js";
 import restApiCall from "./restApiCall.js";
 import githubCreateIssue from "./githubCreateIssue.js";
 import discordNotification from "./discordNotification.js";
+import gmailSendEmail from "./gmailSendEmail.js";
 
 const executors = {
   webhookTrigger,
@@ -14,6 +15,7 @@ const executors = {
   restApiCall,
   githubCreateIssue,
   discordNotification,
+  gmailSendEmail,
 };
 
 export default executors;

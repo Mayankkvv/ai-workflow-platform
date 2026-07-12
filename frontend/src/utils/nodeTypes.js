@@ -6,6 +6,7 @@ export const NODE_TYPES = [
   { type: "restApiCall", label: "REST API Call" },
   { type: "githubCreateIssue", label: "GitHub: Create Issue" },
   { type: "discordNotification", label: "Discord Notification" },
+  { type: "gmailSendEmail", label: "Gmail: Send Email" },
 ];
 
 export const getNodeLabel = (type) => {

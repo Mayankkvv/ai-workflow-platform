@@ -76,4 +76,25 @@ export const NODE_FIELD_SCHEMAS = {
       placeholder: "New result: {{input.response}}",
     },
   ],
+
+  gmailSendEmail: [
+    {
+      key: "to",
+      label: "Recipient Email",
+      inputType: "text",
+      placeholder: "someone@example.com",
+    },
+    {
+      key: "subject",
+      label: "Subject",
+      inputType: "text",
+      placeholder: "New notification: {{input.payload.message}}",
+    },
+    {
+      key: "body",
+      label: "Body",
+      inputType: "textarea",
+      placeholder: "Details: {{input.response}}",
+    },
+  ],
 };
