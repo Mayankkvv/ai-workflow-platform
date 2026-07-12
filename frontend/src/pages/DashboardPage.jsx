@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getWorkflows, createWorkflow } from "../services/workflowService.js";
+import {
+  getWorkflows,
+  createWorkflow,
+  renameWorkflow,
+  deleteWorkflow,
+} from "../services/workflowService.js";
 import useAuthStore from "../store/authStore.js";
+import RenameModal from "../components/RenameModal.jsx";
+import ConfirmDialog from "../components/ConfirmDialog.jsx";
 
 function DashboardPage() {
   const user = useAuthStore((state) => state.user);
@@ -11,6 +18,10 @@ function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+
+  const [renameTarget, setRenameTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchWorkflows = async () => {
@@ -36,6 +47,34 @@ function DashboardPage() {
       setError("Could not create a new workflow. Please try again.");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleRenameSave = async (newName) => {
+    setIsProcessing(true);
+    try {
+      await renameWorkflow(renameTarget._id, newName);
+      setWorkflows((prev) =>
+        prev.map((w) => (w._id === renameTarget._id ? { ...w, name: newName } : w))
+      );
+      setRenameTarget(null);
+    } catch (err) {
+      setError("Could not rename the workflow. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    setIsProcessing(true);
+    try {
+      await deleteWorkflow(deleteTarget._id);
+      setWorkflows((prev) => prev.filter((w) => w._id !== deleteTarget._id));
+      setDeleteTarget(null);
+    } catch (err) {
+      setError("Could not delete the workflow. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -85,23 +124,67 @@ function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {workflows.map((workflow) => (
-              <Link
-                key={workflow._id}
-                to={`/workflows/${workflow._id}`}
-                className="block bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-colors"
-              >
-                <h3 className="font-medium text-gray-800">{workflow.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {workflow.description || "No description"}
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  {workflow.isActive ? "Active" : "Draft"}
-                </p>
-              </Link>
+              <div key={workflow._id} className="group relative">
+                <Link
+                  to={`/workflows/${workflow._id}`}
+                  className="block bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-colors"
+                >
+                  <h3 className="font-medium text-gray-800 pr-14">{workflow.name}</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {workflow.description || "No description"}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    {workflow.isActive ? "Active" : "Draft"}
+                  </p>
+                </Link>
+
+                <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setRenameTarget(workflow);
+                    }}
+                    className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600 text-sm"
+                    title="Rename"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setDeleteTarget(workflow);
+                    }}
+                    className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-red-100 text-red-600 text-sm"
+                    title="Delete"
+                  >
+                    🗑
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </div>
+
+      {renameTarget && (
+        <RenameModal
+          currentName={renameTarget.name}
+          onSave={handleRenameSave}
+          onCancel={() => setRenameTarget(null)}
+          isLoading={isProcessing}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete workflow?"
+          message={`"${deleteTarget.name}" will be permanently deleted. This cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+          isLoading={isProcessing}
+        />
+      )}
     </div>
   );
 }

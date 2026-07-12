@@ -1,6 +1,6 @@
 import Workflow from "../models/Workflow.js";
 import workflowQueue from "../queues/workflowQueue.js";
-import { createWorkflowSchema, updateWorkflowSchema } from "../validators/workflowValidator.js";
+import { createWorkflowSchema, updateWorkflowSchema,renameWorkflowSchema, } from "../validators/workflowValidator.js";
 import ExecutionLog from "../models/ExecutionLog.js";
 
 export const createWorkflow = async (req, res) => {
@@ -215,5 +215,39 @@ export const getExecutionLogs = async (req, res) => {
     return res.status(500).json({
       message: "Something went wrong. Please try again.",
     });
+  }
+};
+
+export const renameWorkflow = async (req, res) => {
+  try {
+    const parsed = renameWorkflowSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const workflow = await Workflow.findById(req.params.id);
+
+    if (!workflow) {
+      return res.status(404).json({ message: "Workflow not found" });
+    }
+
+    if (workflow.userId.toString() !== req.userId) {
+      return res.status(403).json({ message: "You do not have access to this workflow" });
+    }
+
+    workflow.name = parsed.data.name;
+    const updatedWorkflow = await workflow.save();
+
+    return res.status(200).json({
+      message: "Workflow renamed successfully",
+      workflow: updatedWorkflow,
+    });
+  } catch (error) {
+    console.error("Rename workflow error:", error.message);
+    return res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useWorkflowSocket } from "../hooks/useWorkflowSocket.js";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ReactFlow,
   Background,
@@ -23,6 +23,8 @@ import {
 } from "../utils/workflowMappers.js";
 import { NODE_TYPES } from "../utils/nodeTypes.js";
 import NodeConfigPanel from "../components/NodeConfigPanel.jsx";
+import { deleteWorkflow } from "../services/workflowService.js";
+import ConfirmDialog from "../components/ConfirmDialog.jsx";
 
 function WorkflowBuilderPage() {
   const { id } = useParams();
@@ -128,6 +130,23 @@ function WorkflowBuilderPage() {
     }
   };
 
+  const navigate = useNavigate();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteWorkflow(id);
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Could not delete the workflow. Please try again.");
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleExecute = async () => {
     setIsExecuting(true);
     setSaveMessage("");
@@ -188,6 +207,12 @@ function WorkflowBuilderPage() {
           >
             History
           </Link>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-sm text-red-600 hover:text-red-800 px-3 py-2"
+          >
+            Delete
+          </button>
           <label className="flex items-center gap-2 text-sm text-gray-600">
             <input
               type="checkbox"
@@ -230,6 +255,7 @@ function WorkflowBuilderPage() {
           ))}
         </div>
 
+
         <div className="flex-1">
           <ReactFlow
             nodes={nodes}
@@ -252,6 +278,17 @@ function WorkflowBuilderPage() {
           webhookToken={webhookToken}
         />
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title="Delete this workflow?"
+          message="This will permanently delete the workflow and all its execution history. This cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+          isLoading={isDeleting}
+        />
+      )}
     </div>
   );
 }

@@ -28,3 +28,7 @@ export const updateWorkflowSchema = z.object({
   edges: z.array(edgeSchema).optional().default([]),
   isActive: z.boolean().optional(),
 });
+
+export const renameWorkflowSchema = z.object({
+  name: z.string().trim().min(1, "Workflow name is required"),
+});

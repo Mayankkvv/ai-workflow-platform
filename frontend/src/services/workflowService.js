@@ -34,3 +34,8 @@ export const getExecutionLogs = async (id) => {
   const response = await api.get(`/workflows/${id}/executions`);
   return response.data;
 };
+
+export const renameWorkflow = async (id, name) => {
+  const response = await api.patch(`/workflows/${id}/rename`, { name });
+  return response.data;
+};
