@@ -13,6 +13,11 @@ import {
   getGoogleUserInfo,
 } from "../services/googleService.js";
 
+import {
+  getSlackAuthorizeUrl,
+  exchangeSlackCode,
+} from "../services/slackService.js";
+
 export const connectGithub = async (req, res) => {
   const state = jwt.sign({ userId: req.userId }, process.env.OAUTH_STATE_SECRET, {
     expiresIn: "10m",
@@ -156,7 +161,7 @@ export const googleCallback = async (req, res) => {
 
 const GOOGLE_DRIVE_SCOPE =
   "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
-  
+
 
 export const connectGoogleDrive = async (req, res) => {
   const state = jwt.sign(
@@ -168,4 +173,42 @@ export const connectGoogleDrive = async (req, res) => {
   const url = getGoogleAuthorizeUrl(state, GOOGLE_DRIVE_SCOPE);
 
   return res.status(200).json({ url });
+};
+
+export const connectSlack = async (req, res) => {
+  const state = jwt.sign({ userId: req.userId }, process.env.OAUTH_STATE_SECRET, {
+    expiresIn: "10m",
+  });
+
+  const url = getSlackAuthorizeUrl(state);
+
+  return res.status(200).json({ url });
+};
+
+export const slackCallback = async (req, res) => {
+  const { code, state } = req.query;
+
+  try {
+    const decoded = jwt.verify(state, process.env.OAUTH_STATE_SECRET);
+    const userId = decoded.userId;
+
+    const tokenData = await exchangeSlackCode(code);
+
+    await Integration.findOneAndUpdate(
+      { userId, provider: "slack" },
+      {
+        userId,
+        provider: "slack",
+        accessToken: encrypt(tokenData.access_token),
+        scope: tokenData.scope || "",
+        providerAccountLabel: tokenData.team?.name || "Slack Workspace",
+      },
+      { upsert: true, new: true }
+    );
+
+    return res.redirect(`${process.env.FRONTEND_URL}/integrations?connected=slack`);
+  } catch (error) {
+    console.error("Slack callback error:", error.message);
+    return res.redirect(`${process.env.FRONTEND_URL}/integrations?error=slack`);
+  }
 };

@@ -5,6 +5,7 @@ import {
   getGithubConnectUrl,
   getGmailConnectUrl,
   getGoogleDriveConnectUrl,
+  getSlackConnectUrl,
   connectDiscord,
   disconnectIntegration,
 } from "../services/integrationService.js";
@@ -14,6 +15,7 @@ const PROVIDERS = [
   { key: "discord", label: "Discord" },
   { key: "gmail", label: "Gmail" },
   { key: "googledrive", label: "Google Drive" },
+  { key: "slack", label: "Slack" },
 ];
 
 function IntegrationsPage() {
@@ -59,6 +61,9 @@ function IntegrationsPage() {
       window.location.href = url;
     } else if (provider === "googledrive") {
       const { url } = await getGoogleDriveConnectUrl();
+      window.location.href = url;
+    } else if (provider === "slack") {
+      const { url } = await getSlackConnectUrl();
       window.location.href = url;
     } else if (provider === "discord") {
       setShowDiscordForm(true);

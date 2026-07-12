@@ -29,3 +29,8 @@ export const getGoogleDriveConnectUrl = async () => {
   const response = await api.get("/integrations/googledrive/connect");
   return response.data;
 };
+
+export const getSlackConnectUrl = async () => {
+  const response = await api.get("/integrations/slack/connect");
+  return response.data;
+};
