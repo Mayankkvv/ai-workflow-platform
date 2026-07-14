@@ -31,4 +31,5 @@ export const updateWorkflowSchema = z.object({
 
 export const renameWorkflowSchema = z.object({
   name: z.string().trim().min(1, "Workflow name is required"),
+  description: z.string().trim().optional(),
 });

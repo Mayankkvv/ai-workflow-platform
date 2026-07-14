@@ -20,8 +20,9 @@ export const updateWorkflow = async (id, payload) => {
   return response.data;
 };
 
-export const renameWorkflow = async (id, name) => {
-  const response = await api.patch(`/workflows/${id}/rename`, { name });
+export const renameWorkflow = async (id, name, description) => {
+  const payload = description !== undefined ? { name, description } : { name };
+  const response = await api.patch(`/workflows/${id}/rename`, payload);
   return response.data;
 };
 
@@ -42,5 +43,10 @@ export const cancelExecution = async (id, jobId) => {
 
 export const getExecutionLogs = async (id) => {
   const response = await api.get(`/workflows/${id}/executions`);
+  return response.data;
+};
+
+export const duplicateWorkflow = async (id) => {
+  const response = await api.post(`/workflows/${id}/duplicate`);
   return response.data;
 };

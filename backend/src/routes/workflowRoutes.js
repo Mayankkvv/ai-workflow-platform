@@ -10,6 +10,7 @@ import {
   cancelExecution,
   getExecutionLogs,
   renameWorkflow,
+  duplicateWorkflow,
 } from "../controllers/workflowController.js";
 
 const router = express.Router();
@@ -21,6 +22,7 @@ router.get("/", getWorkflows);
 router.get("/:id", getWorkflowById);
 router.put("/:id", updateWorkflow);
 router.patch("/:id/rename", renameWorkflow);
+router.post("/:id/duplicate", duplicateWorkflow);
 router.delete("/:id", deleteWorkflow);
 router.post("/:id/execute", executeWorkflow);
 router.post("/:id/executions/:jobId/cancel", cancelExecution);

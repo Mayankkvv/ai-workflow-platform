@@ -8,6 +8,7 @@ import {
 } from "../validators/workflowValidator.js";
 import workflowQueue from "../queues/workflowQueue.js";
 import redisConnection from "../config/redis.js";
+import crypto from "crypto";
 
 export const createWorkflow = async (req, res) => {
   try {
@@ -132,10 +133,14 @@ export const renameWorkflow = async (req, res) => {
     }
 
     workflow.name = parsed.data.name;
+    if (parsed.data.description !== undefined) {
+      workflow.description = parsed.data.description;
+    }
+
     const updatedWorkflow = await workflow.save();
 
     return res.status(200).json({
-      message: "Workflow renamed successfully",
+      message: "Workflow updated successfully",
       workflow: updatedWorkflow,
     });
   } catch (error) {
@@ -253,6 +258,38 @@ export const getExecutionLogs = async (req, res) => {
     return res.status(200).json({ executions });
   } catch (error) {
     console.error("Get execution logs error:", error.message);
+    return res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+};
+
+export const duplicateWorkflow = async (req, res) => {
+  try {
+    const sourceWorkflow = await Workflow.findById(req.params.id);
+
+    if (!sourceWorkflow) {
+      return res.status(404).json({ message: "Workflow not found" });
+    }
+
+    if (sourceWorkflow.userId.toString() !== req.userId) {
+      return res.status(403).json({ message: "You do not have access to this workflow" });
+    }
+
+    const clonedWorkflow = await Workflow.create({
+      name: `${sourceWorkflow.name} (Copy)`,
+      description: sourceWorkflow.description,
+      userId: req.userId,
+      nodes: sourceWorkflow.nodes,
+      edges: sourceWorkflow.edges,
+      isActive: false,
+      webhookToken: crypto.randomBytes(24).toString("hex"),
+    });
+
+    return res.status(201).json({
+      message: "Workflow duplicated successfully",
+      workflow: clonedWorkflow,
+    });
+  } catch (error) {
+    console.error("Duplicate workflow error:", error.message);
     return res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 };
