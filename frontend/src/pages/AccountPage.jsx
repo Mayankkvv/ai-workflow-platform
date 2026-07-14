@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext.jsx";
 import { updateProfile, changePassword } from "../services/userService.js";
 import useAuthStore from "../store/authStore.js";
 
@@ -12,28 +13,23 @@ function AccountPage() {
 
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [profileMessage, setProfileMessage] = useState("");
-  const [profileError, setProfileError] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [passwordMessage, setPasswordMessage] = useState("");
-  const [passwordError, setPasswordError] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const toast = useToast();
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setProfileMessage("");
-    setProfileError("");
     setIsSavingProfile(true);
 
     try {
       const data = await updateProfile(name, email);
       setAuth(data.user, accessToken);
-      setProfileMessage("Profile updated successfully");
+      toast.success("Profile updated successfully");
     } catch (err) {
-      setProfileError(err.response?.data?.message || "Could not update profile");
+      toast.error(err.response?.data?.message || "Could not update profile");
     } finally {
       setIsSavingProfile(false);
     }
@@ -41,16 +37,15 @@ function AccountPage() {
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    setPasswordMessage("");
-    setPasswordError("");
     setIsChangingPassword(true);
 
     try {
       await changePassword(currentPassword, newPassword);
+      toast.success("Password changed successfully");
       clearAuth();
       navigate("/login");
     } catch (err) {
-      setPasswordError(err.response?.data?.message || "Could not change password");
+      toast.error(err.response?.data?.message || "Could not change password");
     } finally {
       setIsChangingPassword(false);
     }
@@ -59,7 +54,10 @@ function AccountPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-lg mx-auto space-y-6">
-        <Link to="/dashboard" className="text-sm text-gray-500 hover:text-gray-800">
+        <Link
+          to="/dashboard"
+          className="text-sm text-gray-500 hover:text-gray-800"
+        >
           ← Back to dashboard
         </Link>
         <h1 className="text-xl font-bold text-gray-800">Account Settings</h1>
@@ -67,20 +65,11 @@ function AccountPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h2 className="font-semibold text-gray-800 mb-4">Profile</h2>
 
-          {profileMessage && (
-            <div className="mb-4 p-3 rounded bg-green-50 text-green-700 text-sm">
-              {profileMessage}
-            </div>
-          )}
-          {profileError && (
-            <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">
-              {profileError}
-            </div>
-          )}
-
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Name
+              </label>
               <input
                 type="text"
                 value={name}
@@ -90,7 +79,9 @@ function AccountPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
@@ -111,17 +102,6 @@ function AccountPage() {
 
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h2 className="font-semibold text-gray-800 mb-4">Change Password</h2>
-
-          {passwordMessage && (
-            <div className="mb-4 p-3 rounded bg-green-50 text-green-700 text-sm">
-              {passwordMessage}
-            </div>
-          )}
-          {passwordError && (
-            <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">
-              {passwordError}
-            </div>
-          )}
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>

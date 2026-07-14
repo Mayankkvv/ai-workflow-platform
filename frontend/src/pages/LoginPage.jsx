@@ -2,19 +2,19 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../services/authService.js";
 import useAuthStore from "../store/authStore.js";
+import { useToast } from "../context/ToastContext.jsx";
 
 function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const toast = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setIsSubmitting(true);
 
     try {
@@ -23,8 +23,9 @@ function LoginPage() {
       navigate("/dashboard");
     } catch (err) {
       const message =
-        err.response?.data?.message || "Something went wrong. Please try again.";
-      setError(message);
+        err.response?.data?.message ||
+        "Something went wrong. Please try again.";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -36,12 +37,6 @@ function LoginPage() {
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
           Log in to your account
         </h1>
-
-        {error && (
-          <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

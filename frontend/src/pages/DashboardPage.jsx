@@ -11,14 +11,16 @@ import useAuthStore from "../store/authStore.js";
 import RenameModal from "../components/RenameModal.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import EditDescriptionModal from "../components/EditDescriptionModal.jsx";
+import { DashboardSkeleton } from "../components/Skeleton.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 
 function DashboardPage() {
   const user = useAuthStore((state) => state.user);
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const toast = useToast();
 
   const [workflows, setWorkflows] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -34,13 +36,14 @@ function DashboardPage() {
         const data = await getWorkflows();
         setWorkflows(data.workflows);
       } catch (err) {
-        setError("Could not load your workflows. Please try again.");
+        toast.error("Could not load your workflows. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchWorkflows();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreateWorkflow = async () => {
@@ -48,8 +51,9 @@ function DashboardPage() {
     try {
       const data = await createWorkflow("Untitled Workflow", "");
       setWorkflows((prev) => [data.workflow, ...prev]);
+      toast.success("Workflow created");
     } catch (err) {
-      setError("Could not create a new workflow. Please try again.");
+      toast.error("Could not create a new workflow. Please try again.");
     } finally {
       setIsCreating(false);
     }
@@ -63,8 +67,9 @@ function DashboardPage() {
         prev.map((w) => (w._id === renameTarget._id ? { ...w, name: newName } : w))
       );
       setRenameTarget(null);
+      toast.success("Workflow renamed");
     } catch (err) {
-      setError("Could not rename the workflow. Please try again.");
+      toast.error("Could not rename the workflow. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -80,8 +85,9 @@ function DashboardPage() {
         )
       );
       setDescriptionTarget(null);
+      toast.success("Description updated");
     } catch (err) {
-      setError("Could not update the description. Please try again.");
+      toast.error("Could not update the description. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -93,8 +99,9 @@ function DashboardPage() {
       await deleteWorkflow(deleteTarget._id);
       setWorkflows((prev) => prev.filter((w) => w._id !== deleteTarget._id));
       setDeleteTarget(null);
+      toast.success("Workflow deleted");
     } catch (err) {
-      setError("Could not delete the workflow. Please try again.");
+      toast.error("Could not delete the workflow. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -105,8 +112,9 @@ function DashboardPage() {
     try {
       const data = await duplicateWorkflow(workflow._id);
       setWorkflows((prev) => [data.workflow, ...prev]);
+      toast.success("Workflow duplicated");
     } catch (err) {
-      setError("Could not duplicate the workflow. Please try again.");
+      toast.error("Could not duplicate the workflow. Please try again.");
     } finally {
       setDuplicatingId(null);
     }
@@ -161,12 +169,8 @@ function DashboardPage() {
           </button>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">{error}</div>
-        )}
-
         {isLoading ? (
-          <p className="text-gray-500">Loading your workflows...</p>
+          <DashboardSkeleton />
         ) : workflows.length === 0 ? (
           <p className="text-gray-500">
             You don't have any workflows yet. Create your first one above.

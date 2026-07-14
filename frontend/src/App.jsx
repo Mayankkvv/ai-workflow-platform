@@ -12,6 +12,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { refresh } from "./services/authService.js";
 import useAuthStore from "./store/authStore.js";
+import { FullPageSkeleton } from "./components/Skeleton.jsx";
 
 function App() {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -35,11 +36,7 @@ function App() {
   }, []);
 
   if (isInitializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Loading...</p>
-      </div>
-    );
+    return <FullPageSkeleton />;
   }
 
   return (

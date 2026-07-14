@@ -1,25 +1,29 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getExecutionLogs, executeWorkflow } from "../services/workflowService.js";
+import {
+  getExecutionLogs,
+  executeWorkflow,
+} from "../services/workflowService.js";
 import { getNodeLabel } from "../utils/nodeTypes.js";
 import { useWorkflowSocket } from "../hooks/useWorkflowSocket.js";
+import { useToast } from "../context/ToastContext.jsx";
+import { ExecutionHistorySkeleton } from "../components/Skeleton.jsx";
 
 function ExecutionHistoryPage() {
   const { id } = useParams();
 
   const [executions, setExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState(null);
-  const [liveNotice, setLiveNotice] = useState("");
   const [isRetrying, setIsRetrying] = useState(false);
+  const toast = useToast();
 
   const fetchExecutions = async () => {
     try {
       const data = await getExecutionLogs(id);
       setExecutions(data.executions);
     } catch (err) {
-      setError("Could not load execution history.");
+      toast.error("Could not load execution history.");
     } finally {
       setIsLoading(false);
     }
@@ -31,16 +35,15 @@ function ExecutionHistoryPage() {
   }, [id]);
 
   useWorkflowSocket(id, (data) => {
-    setLiveNotice(
+    const message =
       data.status === "cancelled"
         ? "An execution was cancelled — list updated"
         : data.status === "completed" || data.status === "success"
-        ? "A new execution just completed — list updated"
-        : "A new execution just failed — list updated"
-    );
-    fetchExecutions();
+          ? "A new execution just completed — list updated"
+          : "A new execution just failed — list updated";
 
-    setTimeout(() => setLiveNotice(""), 4000);
+    toast.info(message);
+    fetchExecutions();
   });
 
   const toggleExpanded = (executionId) => {
@@ -49,13 +52,11 @@ function ExecutionHistoryPage() {
 
   const handleRetry = async () => {
     setIsRetrying(true);
-    setError("");
     try {
       await executeWorkflow(id);
-      setLiveNotice("Retry started — results will appear here shortly");
-      setTimeout(() => setLiveNotice(""), 4000);
+      toast.info("Retry started — results will appear here shortly");
     } catch (err) {
-      setError(err.response?.data?.message || "Could not start retry");
+      toast.error(err.response?.data?.message || "Could not start retry");
     } finally {
       setIsRetrying(false);
     }
@@ -72,7 +73,9 @@ function ExecutionHistoryPage() {
             >
               ← Back to builder
             </Link>
-            <h1 className="text-xl font-bold text-gray-800">Execution History</h1>
+            <h1 className="text-xl font-bold text-gray-800">
+              Execution History
+            </h1>
           </div>
 
           <button
@@ -84,23 +87,12 @@ function ExecutionHistoryPage() {
           </button>
         </div>
 
-        {liveNotice && (
-          <div className="mb-4 p-3 rounded bg-blue-50 text-blue-700 text-sm">
-            {liveNotice}
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">
-            {error}
-          </div>
-        )}
-
         {isLoading ? (
-          <p className="text-gray-500">Loading history...</p>
+          <ExecutionHistorySkeleton />
         ) : executions.length === 0 ? (
           <p className="text-gray-500">
-            No executions yet. Run this workflow from the builder to see results here.
+            No executions yet. Run this workflow from the builder to see results
+            here.
           </p>
         ) : (
           <div className="space-y-3">
@@ -119,8 +111,8 @@ function ExecutionHistoryPage() {
                         execution.status === "success"
                           ? "bg-green-100 text-green-700"
                           : execution.status === "cancelled"
-                          ? "bg-gray-200 text-gray-600"
-                          : "bg-red-100 text-red-700"
+                            ? "bg-gray-200 text-gray-600"
+                            : "bg-red-100 text-red-700"
                       }`}
                     >
                       {execution.status}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useToast } from "../context/ToastContext.jsx";
 import { resetPassword } from "../services/authService.js";
 
 function ResetPasswordPage() {
@@ -7,19 +8,18 @@ function ResetPasswordPage() {
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setIsSubmitting(true);
 
     try {
       await resetPassword(token, password);
       navigate("/login");
     } catch (err) {
-      setError(err.response?.data?.message || "Could not reset password");
+      toast.error(err.response?.data?.message || "Could not reset password");
     } finally {
       setIsSubmitting(false);
     }
@@ -28,11 +28,9 @@ function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Set a new password</h1>
-
-        {error && (
-          <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">{error}</div>
-        )}
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          Set a new password
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

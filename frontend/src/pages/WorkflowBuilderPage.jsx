@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { FullPageSkeleton } from "../components/Skeleton.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 import {
   ReactFlow,
   Background,
@@ -78,11 +80,13 @@ function WorkflowBuilderPage() {
     setActiveJobId(null);
 
     if (data.status === "cancelled") {
-      setLiveExecutionStatus("⏹ Execution was cancelled");
+      toast.info("Execution was cancelled");
     } else if (data.status === "completed" || data.status === "success") {
-      setLiveExecutionStatus("✓ Execution completed — check History for details");
+      toast.success("Execution completed — check History for details");
     } else {
-      setLiveExecutionStatus(`✕ Execution failed: ${data.error || "see History for details"}`);
+      toast.error(
+        `Execution failed: ${data.error || "see History for details"}`,
+      );
     }
   });
 
@@ -172,8 +176,8 @@ function WorkflowBuilderPage() {
       prev.map((node) =>
         node.id === nodeId
           ? { ...node, data: { ...node.data, config: newConfig } }
-          : node
-      )
+          : node,
+      ),
     );
   };
 
@@ -196,7 +200,9 @@ function WorkflowBuilderPage() {
   const handleDeleteNode = (nodeId) => {
     takeSnapshot();
     setNodes((prev) => prev.filter((n) => n.id !== nodeId));
-    setEdges((prev) => prev.filter((e) => e.source !== nodeId && e.target !== nodeId));
+    setEdges((prev) =>
+      prev.filter((e) => e.source !== nodeId && e.target !== nodeId),
+    );
     setSelectedNodeId(null);
   };
 
@@ -225,8 +231,6 @@ function WorkflowBuilderPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveMessage("");
-    setError("");
 
     try {
       await updateWorkflow(id, {
@@ -236,9 +240,9 @@ function WorkflowBuilderPage() {
         edges: toBackendEdges(edges),
         isActive,
       });
-      setSaveMessage("Saved successfully");
+      toast.success("Saved successfully");
     } catch (err) {
-      setError("Could not save the workflow. Please try again.");
+      toast.error("Could not save the workflow. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -246,18 +250,16 @@ function WorkflowBuilderPage() {
 
   const handleExecute = async () => {
     setIsExecuting(true);
-    setSaveMessage("");
-    setError("");
-    setLiveExecutionStatus("");
 
     try {
       const data = await executeWorkflow(id);
       setActiveJobId(data.jobId);
-      setSaveMessage("Execution started — check history for results shortly");
+      toast.info("Execution started — check history for results shortly");
     } catch (err) {
       const message =
-        err.response?.data?.message || "Could not start execution. Please try again.";
-      setError(message);
+        err.response?.data?.message ||
+        "Could not start execution. Please try again.";
+      toast.error(message);
     } finally {
       setIsExecuting(false);
     }
@@ -268,9 +270,9 @@ function WorkflowBuilderPage() {
 
     try {
       const data = await cancelExecution(id, activeJobId);
-      setSaveMessage(data.message);
+      toast.info(data.message);
     } catch (err) {
-      setError(err.response?.data?.message || "Could not cancel execution");
+      toast.error(err.response?.data?.message || "Could not cancel execution");
     }
   };
 
@@ -290,18 +292,17 @@ function WorkflowBuilderPage() {
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Loading workflow...</p>
-      </div>
-    );
+    return <FullPageSkeleton />;
   }
 
   return (
     <div className="h-screen flex flex-col">
       <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-4">
-          <Link to="/dashboard" className="text-sm text-gray-500 hover:text-gray-800">
+          <Link
+            to="/dashboard"
+            className="text-sm text-gray-500 hover:text-gray-800"
+          >
             ← Back
           </Link>
           <input
@@ -322,17 +323,16 @@ function WorkflowBuilderPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {liveExecutionStatus && (
+          {/* {liveExecutionStatus && (
             <span className="text-sm text-gray-700">{liveExecutionStatus}</span>
           )}
-          {saveMessage && <span className="text-sm text-green-600">{saveMessage}</span>}
-          {error && <span className="text-sm text-red-600">{error}</span>}
+          {saveMessage && (
+            <span className="text-sm text-green-600">{saveMessage}</span>
+          )}
+          {error && <span className="text-sm text-red-600">{error}</span>} */}
 
           <button
             onClick={handleUndo}
-            disabled={history.past.length === 0}
-            title="Undo (Ctrl+Z)"
-            className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:hover:text-gray-600 px-2"
           >
             ↶ Undo
           </button>
@@ -387,7 +387,9 @@ function WorkflowBuilderPage() {
 
       <div className="flex flex-1 overflow-hidden">
         <div className="w-56 border-r border-gray-200 bg-white p-4 space-y-2 overflow-y-auto">
-          <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Add a node</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase mb-2">
+            Add a node
+          </p>
           {NODE_TYPES.map((nodeType) => (
             <button
               key={nodeType.type}
