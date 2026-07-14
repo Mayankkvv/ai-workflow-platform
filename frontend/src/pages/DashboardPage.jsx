@@ -13,6 +13,7 @@ import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import EditDescriptionModal from "../components/EditDescriptionModal.jsx";
 import { DashboardSkeleton } from "../components/Skeleton.jsx";
 import { useToast } from "../context/ToastContext.jsx";
+import IntegrationsMenu from "../components/IntegrationsMenu.jsx";
 
 function DashboardPage() {
   const user = useAuthStore((state) => state.user);
@@ -64,7 +65,9 @@ function DashboardPage() {
     try {
       await renameWorkflow(renameTarget._id, newName);
       setWorkflows((prev) =>
-        prev.map((w) => (w._id === renameTarget._id ? { ...w, name: newName } : w))
+        prev.map((w) =>
+          w._id === renameTarget._id ? { ...w, name: newName } : w,
+        ),
       );
       setRenameTarget(null);
       toast.success("Workflow renamed");
@@ -78,11 +81,17 @@ function DashboardPage() {
   const handleDescriptionSave = async (newDescription) => {
     setIsProcessing(true);
     try {
-      await renameWorkflow(descriptionTarget._id, descriptionTarget.name, newDescription);
+      await renameWorkflow(
+        descriptionTarget._id,
+        descriptionTarget.name,
+        newDescription,
+      );
       setWorkflows((prev) =>
         prev.map((w) =>
-          w._id === descriptionTarget._id ? { ...w, description: newDescription } : w
-        )
+          w._id === descriptionTarget._id
+            ? { ...w, description: newDescription }
+            : w,
+        ),
       );
       setDescriptionTarget(null);
       toast.success("Description updated");
@@ -134,14 +143,23 @@ function DashboardPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Welcome, {user?.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Welcome, {user?.name}
+            </h1>
             <p className="text-gray-500 text-sm">{user?.email}</p>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/account" className="text-sm text-gray-600 hover:text-gray-900">
+            <IntegrationsMenu />
+            <Link
+              to="/account"
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
               Account
             </Link>
-            <button onClick={clearAuth} className="text-sm text-gray-600 hover:text-gray-900">
+            <button
+              onClick={clearAuth}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
               Log out
             </button>
           </div>
@@ -185,7 +203,9 @@ function DashboardPage() {
                   to={`/workflows/${workflow._id}`}
                   className="block bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-colors"
                 >
-                  <h3 className="font-medium text-gray-800 pr-20">{workflow.name}</h3>
+                  <h3 className="font-medium text-gray-800 pr-20">
+                    {workflow.name}
+                  </h3>
                   <p className="text-sm text-gray-500 mt-1">
                     {workflow.description || "No description"}
                   </p>
