@@ -6,22 +6,77 @@ import {
   renameWorkflow,
   deleteWorkflow,
   duplicateWorkflow,
+  getRecentExecutions,
 } from "../services/workflowService.js";
 import useAuthStore from "../store/authStore.js";
 import RenameModal from "../components/RenameModal.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import EditDescriptionModal from "../components/EditDescriptionModal.jsx";
-import { DashboardSkeleton } from "../components/Skeleton.jsx";
+import { DashboardSkeleton, SkeletonLine } from "../components/Skeleton.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import IntegrationsMenu from "../components/IntegrationsMenu.jsx";
+import Sidebar, { MobileNav } from "../components/Sidebar.jsx";
+import {
+  Search,
+  Plus,
+  Pencil,
+  Copy,
+  Trash2,
+  FileText,
+  Workflow as WorkflowIcon,
+  Zap,
+  TrendingUp,
+  CheckCircle2,
+  XCircle,
+  Ban,
+  Plug,
+  Settings2,
+  Rocket,
+} from "lucide-react";
+
+function StatCard({ icon: Icon, label, value, sublabel, accent }) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between">
+      <div>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+          {label}
+        </p>
+        <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
+        {sublabel && <p className="text-xs text-gray-400 mt-0.5">{sublabel}</p>}
+      </div>
+      <div
+        className={`w-11 h-11 rounded-full flex items-center justify-center ${accent}`}
+      >
+        <Icon className="w-5 h-5" />
+      </div>
+    </div>
+  );
+}
+
+function getInitials(name) {
+  if (!name) return "?";
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+const STATUS_STYLES = {
+  success: { icon: CheckCircle2, color: "text-green-600" },
+  failed: { icon: XCircle, color: "text-red-600" },
+  cancelled: { icon: Ban, color: "text-gray-400" },
+};
 
 function DashboardPage() {
   const user = useAuthStore((state) => state.user);
-  const clearAuth = useAuthStore((state) => state.clearAuth);
   const toast = useToast();
 
   const [workflows, setWorkflows] = useState([]);
+  const [recentExecutions, setRecentExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingActivity, setIsLoadingActivity] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -32,7 +87,7 @@ function DashboardPage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    const fetchWorkflows = async () => {
+    const load = async () => {
       try {
         const data = await getWorkflows();
         setWorkflows(data.workflows);
@@ -41,9 +96,18 @@ function DashboardPage() {
       } finally {
         setIsLoading(false);
       }
+
+      try {
+        const data = await getRecentExecutions();
+        setRecentExecutions(data.executions);
+      } catch (err) {
+        // Non-critical — the dashboard is still fully usable without this.
+      } finally {
+        setIsLoadingActivity(false);
+      }
     };
 
-    fetchWorkflows();
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -138,130 +202,288 @@ function DashboardPage() {
     );
   });
 
+  const activeCount = workflows.filter((w) => w.isActive).length;
+  const successRate = recentExecutions.length
+    ? Math.round(
+        (recentExecutions.filter((e) => e.status === "success").length /
+          recentExecutions.length) *
+          100,
+      )
+    : null;
+
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              Welcome, {user?.name}
-            </h1>
-            <p className="text-gray-500 text-sm">{user?.email}</p>
+    <div className="min-h-screen bg-gray-50">
+      <Sidebar />
+      <MobileNav />
+
+      <main className="md:pl-64">
+        <header className="hidden md:flex items-center justify-between px-8 h-16 sticky top-0 z-20 bg-white border-b border-gray-200">
+          <div className="relative w-96">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search your workflows..."
+              className="w-full h-10 pl-9 pr-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
           </div>
+
           <div className="flex items-center gap-4">
             <IntegrationsMenu />
-            <Link
-              to="/account"
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
-              Account
-            </Link>
+            <div className="w-px h-6 bg-gray-200" />
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold flex items-center justify-center">
+              {getInitials(user?.name)}
+            </div>
+          </div>
+        </header>
+
+        <div className="p-6 md:p-8 max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">
+                Welcome back, {user?.name?.split(" ")[0]}
+              </h1>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Here's what's happening with your workflows.
+              </p>
+            </div>
             <button
-              onClick={clearAuth}
-              className="text-sm text-gray-600 hover:text-gray-900"
+              onClick={handleCreateWorkflow}
+              disabled={isCreating}
+              className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
             >
-              Log out
+              <Plus className="w-4 h-4" />
+              {isCreating ? "Creating..." : "New Workflow"}
             </button>
           </div>
-        </div>
 
-        <div className="flex justify-between items-center mb-4 gap-4">
-          <h2 className="text-lg font-semibold text-gray-800 whitespace-nowrap">
-            Your Workflows
-          </h2>
-
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search workflows..."
-            className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <button
-            onClick={handleCreateWorkflow}
-            disabled={isCreating}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
-          >
-            {isCreating ? "Creating..." : "+ New Workflow"}
-          </button>
-        </div>
-
-        {isLoading ? (
-          <DashboardSkeleton />
-        ) : workflows.length === 0 ? (
-          <p className="text-gray-500">
-            You don't have any workflows yet. Create your first one above.
-          </p>
-        ) : filteredWorkflows.length === 0 ? (
-          <p className="text-gray-500">No workflows match "{searchTerm}".</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {filteredWorkflows.map((workflow) => (
-              <div key={workflow._id} className="group relative">
-                <Link
-                  to={`/workflows/${workflow._id}`}
-                  className="block bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-colors"
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white border border-gray-200 rounded-xl p-4"
                 >
-                  <h3 className="font-medium text-gray-800 pr-20">
-                    {workflow.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {workflow.description || "No description"}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    {workflow.isActive ? "Active" : "Draft"}
-                  </p>
-                </Link>
-
-                <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setDescriptionTarget(workflow);
-                    }}
-                    className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600 text-sm"
-                    title="Edit description"
-                  >
-                    📝
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleDuplicate(workflow);
-                    }}
-                    disabled={duplicatingId === workflow._id}
-                    className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600 text-sm disabled:opacity-50"
-                    title="Duplicate"
-                  >
-                    ⧉
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setRenameTarget(workflow);
-                    }}
-                    className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600 text-sm"
-                    title="Rename"
-                  >
-                    ✎
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setDeleteTarget(workflow);
-                    }}
-                    className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-red-100 text-red-600 text-sm"
-                    title="Delete"
-                  >
-                    🗑
-                  </button>
+                  <SkeletonLine className="h-3 w-20 mb-3" />
+                  <SkeletonLine className="h-7 w-14" />
                 </div>
+              ))}
+            </div>
+          ) : workflows.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 md:p-8 mb-8">
+              <h2 className="text-lg font-bold text-gray-800 mb-1">
+                Get started
+              </h2>
+              <p className="text-sm text-gray-500 mb-6 max-w-xl">
+                Connect an app, build a workflow visually, then activate it to
+                start automating.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                {[
+                  {
+                    icon: Plug,
+                    title: "Connect an app",
+                    desc: "Authorize GitHub, Slack, Gmail, and more.",
+                  },
+                  {
+                    icon: Settings2,
+                    title: "Build the flow",
+                    desc: "Drag nodes onto the canvas and connect them.",
+                  },
+                  {
+                    icon: Rocket,
+                    title: "Go live",
+                    desc: "Toggle Active and trigger it via webhook.",
+                  },
+                ].map(({ icon: Icon, title, desc }, i) => (
+                  <div
+                    key={title}
+                    className="flex flex-col items-center text-center"
+                  >
+                    <div className="w-11 h-11 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2 font-bold text-sm">
+                      {i + 1}
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800">
+                      {title}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">{desc}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <button
+                onClick={handleCreateWorkflow}
+                disabled={isCreating}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isCreating ? "Creating..." : "Create your first workflow"}
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <StatCard
+                  icon={WorkflowIcon}
+                  label="Total Workflows"
+                  value={workflows.length}
+                  accent="bg-blue-50 text-blue-600"
+                />
+                <StatCard
+                  icon={Zap}
+                  label="Active"
+                  value={activeCount}
+                  sublabel={`${workflows.length - activeCount} in draft`}
+                  accent="bg-green-50 text-green-600"
+                />
+                <StatCard
+                  icon={TrendingUp}
+                  label="Success Rate"
+                  value={successRate !== null ? `${successRate}%` : "—"}
+                  sublabel={
+                    recentExecutions.length
+                      ? `last ${recentExecutions.length} runs`
+                      : "no runs yet"
+                  }
+                  accent="bg-purple-50 text-purple-600"
+                />
+              </div>
+
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Your Workflows
+                </h2>
+              </div>
+
+              {filteredWorkflows.length === 0 ? (
+                <p className="text-gray-500 mb-8">
+                  No workflows match "{searchTerm}".
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                  {filteredWorkflows.map((workflow) => (
+                    <div key={workflow._id} className="group relative">
+                      <Link
+                        to={`/workflows/${workflow._id}`}
+                        className={`block bg-white p-4 rounded-xl shadow-sm border border-gray-200 border-l-4 ${
+                          workflow.isActive
+                            ? "border-l-green-500"
+                            : "border-l-gray-300"
+                        } hover:border-blue-400 hover:border-l-blue-400 transition-colors`}
+                      >
+                        <h3 className="font-medium text-gray-800 pr-24 truncate">
+                          {workflow.name}
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          {workflow.description || "No description"}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-3 flex items-center gap-1.5">
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              workflow.isActive ? "bg-green-500" : "bg-gray-300"
+                            }`}
+                          />
+                          {workflow.isActive ? "Active" : "Draft"}
+                        </p>
+                      </Link>
+
+                      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDescriptionTarget(workflow);
+                          }}
+                          title="Edit description"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDuplicate(workflow);
+                          }}
+                          disabled={duplicatingId === workflow._id}
+                          title="Duplicate"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600 disabled:opacity-50"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setRenameTarget(workflow);
+                          }}
+                          title="Rename"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDeleteTarget(workflow);
+                          }}
+                          title="Delete"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-red-100 text-red-600"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h2 className="text-base font-semibold text-gray-800">
+                    Recent Activity
+                  </h2>
+                </div>
+
+                {isLoadingActivity ? (
+                  <div className="p-4 space-y-3">
+                    {[0, 1, 2].map((i) => (
+                      <SkeletonLine key={i} className="h-4 w-full" />
+                    ))}
+                  </div>
+                ) : recentExecutions.length === 0 ? (
+                  <p className="text-sm text-gray-400 p-4">
+                    No executions yet — run a workflow to see activity here.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-gray-100">
+                    {recentExecutions.map((execution) => {
+                      const style =
+                        STATUS_STYLES[execution.status] || STATUS_STYLES.failed;
+                      const StatusIcon = style.icon;
+                      return (
+                        <Link
+                          key={execution._id}
+                          to={`/workflows/${execution.workflowId?._id}/executions`}
+                          className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <StatusIcon
+                              className={`w-4 h-4 shrink-0 ${style.color}`}
+                            />
+                            <span className="text-sm text-gray-800 truncate">
+                              {execution.workflowId?.name || "Deleted workflow"}
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-400 shrink-0 ml-3">
+                            {new Date(execution.createdAt).toLocaleString()}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </main>
 
       {renameTarget && (
         <RenameModal

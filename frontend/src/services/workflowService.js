@@ -50,3 +50,8 @@ export const duplicateWorkflow = async (id) => {
   const response = await api.post(`/workflows/${id}/duplicate`);
   return response.data;
 };
+
+export const getRecentExecutions = async () => {
+  const response = await api.get("/workflows/executions/recent");
+  return response.data;
+};

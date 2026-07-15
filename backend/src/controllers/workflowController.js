@@ -293,3 +293,17 @@ export const duplicateWorkflow = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 };
+
+export const getRecentExecutions = async (req, res) => {
+  try {
+    const executions = await ExecutionLog.find({ userId: req.userId })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate("workflowId", "name");
+
+    return res.status(200).json({ executions });
+  } catch (error) {
+    console.error("Get recent executions error:", error.message);
+    return res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+};
