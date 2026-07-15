@@ -117,15 +117,15 @@ function IntegrationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-8">
       <div className="max-w-2xl mx-auto">
         <Link
           to="/dashboard"
-          className="text-sm text-gray-500 hover:text-gray-800"
+          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
         >
           ← Back to dashboard
         </Link>
-        <h1 className="text-xl font-bold text-gray-800 mt-4 mb-6">
+        <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-4 mb-6">
           Integrations
         </h1>
 
@@ -140,19 +140,19 @@ function IntegrationsPage() {
               return (
                 <div
                   key={provider.key}
-                  className="bg-white border border-gray-200 rounded-lg p-4"
+                  className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-800">
+                      <p className="font-medium text-gray-800 dark:text-gray-100">
                         {provider.label}
                       </p>
                       {integration && (
                         <>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             Connected as {integration.providerAccountLabel}
                           </p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
                             Connected on{" "}
                             {new Date(
                               integration.createdAt,
@@ -167,7 +167,7 @@ function IntegrationsPage() {
                         <button
                           onClick={() => handleTest(provider.key)}
                           disabled={testingProvider === provider.key}
-                          className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                          className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 disabled:opacity-50"
                         >
                           {testingProvider === provider.key
                             ? "Testing..."
@@ -216,7 +216,7 @@ function IntegrationsPage() {
                           value={discordUrlInput}
                           onChange={(e) => setDiscordUrlInput(e.target.value)}
                           placeholder="https://discord.com/api/webhooks/..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm"
                         />
                         <button
                           onClick={handleDiscordSubmit}

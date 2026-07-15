@@ -12,9 +12,8 @@ import useAuthStore from "../store/authStore.js";
 import RenameModal from "../components/RenameModal.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import EditDescriptionModal from "../components/EditDescriptionModal.jsx";
-import { DashboardSkeleton, SkeletonLine } from "../components/Skeleton.jsx";
+import { SkeletonLine } from "../components/Skeleton.jsx";
 import { useToast } from "../context/ToastContext.jsx";
-import IntegrationsMenu from "../components/IntegrationsMenu.jsx";
 import Sidebar, { MobileNav } from "../components/Sidebar.jsx";
 import {
   Search,
@@ -36,13 +35,19 @@ import {
 
 function StatCard({ icon: Icon, label, value, sublabel, accent }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 flex items-center justify-between">
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+        <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
           {label}
         </p>
-        <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
-        {sublabel && <p className="text-xs text-gray-400 mt-0.5">{sublabel}</p>}
+        <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-1">
+          {value}
+        </p>
+        {sublabel && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            {sublabel}
+          </p>
+        )}
       </div>
       <div
         className={`w-11 h-11 rounded-full flex items-center justify-center ${accent}`}
@@ -64,9 +69,9 @@ function getInitials(name) {
 }
 
 const STATUS_STYLES = {
-  success: { icon: CheckCircle2, color: "text-green-600" },
-  failed: { icon: XCircle, color: "text-red-600" },
-  cancelled: { icon: Ban, color: "text-gray-400" },
+  success: { icon: CheckCircle2, color: "text-green-600 dark:text-green-400" },
+  failed: { icon: XCircle, color: "text-red-600 dark:text-red-400" },
+  cancelled: { icon: Ban, color: "text-gray-400 dark:text-gray-500" },
 };
 
 function DashboardPage() {
@@ -212,39 +217,35 @@ function DashboardPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Sidebar />
       <MobileNav />
 
       <main className="md:pl-64">
-        <header className="hidden md:flex items-center justify-between px-8 h-16 sticky top-0 z-20 bg-white border-b border-gray-200">
+        <header className="hidden md:flex items-center justify-between px-8 h-16 sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <div className="relative w-96">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search your workflows..."
-              className="w-full h-10 pl-9 pr-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
-          <div className="flex items-center gap-4">
-            <IntegrationsMenu />
-            <div className="w-px h-6 bg-gray-200" />
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold flex items-center justify-center">
-              {getInitials(user?.name)}
-            </div>
+          <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold flex items-center justify-center">
+            {getInitials(user?.name)}
           </div>
         </header>
 
         <div className="p-6 md:p-8 max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                 Welcome back, {user?.name?.split(" ")[0]}
               </h1>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 Here's what's happening with your workflows.
               </p>
             </div>
@@ -263,7 +264,7 @@ function DashboardPage() {
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="bg-white border border-gray-200 rounded-xl p-4"
+                  className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4"
                 >
                   <SkeletonLine className="h-3 w-20 mb-3" />
                   <SkeletonLine className="h-7 w-14" />
@@ -271,11 +272,11 @@ function DashboardPage() {
               ))}
             </div>
           ) : workflows.length === 0 ? (
-            <div className="bg-white border border-gray-200 rounded-xl p-6 md:p-8 mb-8">
-              <h2 className="text-lg font-bold text-gray-800 mb-1">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 md:p-8 mb-8">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
                 Get started
               </h2>
-              <p className="text-sm text-gray-500 mb-6 max-w-xl">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-xl">
                 Connect an app, build a workflow visually, then activate it to
                 start automating.
               </p>
@@ -301,13 +302,15 @@ function DashboardPage() {
                     key={title}
                     className="flex flex-col items-center text-center"
                   >
-                    <div className="w-11 h-11 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2 font-bold text-sm">
+                    <div className="w-11 h-11 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 font-bold text-sm">
                       {i + 1}
                     </div>
-                    <p className="text-sm font-semibold text-gray-800">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                       {title}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">{desc}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {desc}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -326,14 +329,14 @@ function DashboardPage() {
                   icon={WorkflowIcon}
                   label="Total Workflows"
                   value={workflows.length}
-                  accent="bg-blue-50 text-blue-600"
+                  accent="bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
                 />
                 <StatCard
                   icon={Zap}
                   label="Active"
                   value={activeCount}
                   sublabel={`${workflows.length - activeCount} in draft`}
-                  accent="bg-green-50 text-green-600"
+                  accent="bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400"
                 />
                 <StatCard
                   icon={TrendingUp}
@@ -344,18 +347,18 @@ function DashboardPage() {
                       ? `last ${recentExecutions.length} runs`
                       : "no runs yet"
                   }
-                  accent="bg-purple-50 text-purple-600"
+                  accent="bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400"
                 />
               </div>
 
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-800">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                   Your Workflows
                 </h2>
               </div>
 
               {filteredWorkflows.length === 0 ? (
-                <p className="text-gray-500 mb-8">
+                <p className="text-gray-500 dark:text-gray-400 mb-8">
                   No workflows match "{searchTerm}".
                 </p>
               ) : (
@@ -364,22 +367,24 @@ function DashboardPage() {
                     <div key={workflow._id} className="group relative">
                       <Link
                         to={`/workflows/${workflow._id}`}
-                        className={`block bg-white p-4 rounded-xl shadow-sm border border-gray-200 border-l-4 ${
+                        className={`block bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 ${
                           workflow.isActive
                             ? "border-l-green-500"
-                            : "border-l-gray-300"
+                            : "border-l-gray-300 dark:border-l-gray-700"
                         } hover:border-blue-400 hover:border-l-blue-400 transition-colors`}
                       >
-                        <h3 className="font-medium text-gray-800 pr-24 truncate">
+                        <h3 className="font-medium text-gray-800 dark:text-gray-100 pr-24 truncate">
                           {workflow.name}
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
                           {workflow.description || "No description"}
                         </p>
-                        <p className="text-xs text-gray-400 mt-3 flex items-center gap-1.5">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 flex items-center gap-1.5">
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              workflow.isActive ? "bg-green-500" : "bg-gray-300"
+                              workflow.isActive
+                                ? "bg-green-500"
+                                : "bg-gray-300 dark:bg-gray-600"
                             }`}
                           />
                           {workflow.isActive ? "Active" : "Draft"}
@@ -393,7 +398,7 @@ function DashboardPage() {
                             setDescriptionTarget(workflow);
                           }}
                           title="Edit description"
-                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
                         >
                           <FileText className="w-3.5 h-3.5" />
                         </button>
@@ -404,7 +409,7 @@ function DashboardPage() {
                           }}
                           disabled={duplicatingId === workflow._id}
                           title="Duplicate"
-                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600 disabled:opacity-50"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
@@ -414,7 +419,7 @@ function DashboardPage() {
                             setRenameTarget(workflow);
                           }}
                           title="Rename"
-                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-gray-200 text-gray-600"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
@@ -424,7 +429,7 @@ function DashboardPage() {
                             setDeleteTarget(workflow);
                           }}
                           title="Delete"
-                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-red-100 text-red-600"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 dark:bg-gray-800 hover:bg-red-100 dark:hover:bg-red-950 text-red-600 dark:text-red-400"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -434,9 +439,9 @@ function DashboardPage() {
                 </div>
               )}
 
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-200">
-                  <h2 className="text-base font-semibold text-gray-800">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+                  <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">
                     Recent Activity
                   </h2>
                 </div>
@@ -448,11 +453,11 @@ function DashboardPage() {
                     ))}
                   </div>
                 ) : recentExecutions.length === 0 ? (
-                  <p className="text-sm text-gray-400 p-4">
+                  <p className="text-sm text-gray-400 dark:text-gray-500 p-4">
                     No executions yet — run a workflow to see activity here.
                   </p>
                 ) : (
-                  <div className="divide-y divide-gray-100">
+                  <div className="divide-y divide-gray-100 dark:divide-gray-800">
                     {recentExecutions.map((execution) => {
                       const style =
                         STATUS_STYLES[execution.status] || STATUS_STYLES.failed;
@@ -461,17 +466,17 @@ function DashboardPage() {
                         <Link
                           key={execution._id}
                           to={`/workflows/${execution.workflowId?._id}/executions`}
-                          className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+                          className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <StatusIcon
                               className={`w-4 h-4 shrink-0 ${style.color}`}
                             />
-                            <span className="text-sm text-gray-800 truncate">
+                            <span className="text-sm text-gray-800 dark:text-gray-100 truncate">
                               {execution.workflowId?.name || "Deleted workflow"}
                             </span>
                           </div>
-                          <span className="text-xs text-gray-400 shrink-0 ml-3">
+                          <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0 ml-3">
                             {new Date(execution.createdAt).toLocaleString()}
                           </span>
                         </Link>

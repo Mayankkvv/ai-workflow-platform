@@ -52,22 +52,26 @@ function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-8">
       <div className="max-w-lg mx-auto space-y-6">
         <Link
           to="/dashboard"
-          className="text-sm text-gray-500 hover:text-gray-800"
+          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
         >
           ← Back to dashboard
         </Link>
-        <h1 className="text-xl font-bold text-gray-800">Account Settings</h1>
+        <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+          Account Settings
+        </h1>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="font-semibold text-gray-800 mb-4">Profile</h2>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+          <h2 className="font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            Profile
+          </h2>
 
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Name
               </label>
               <input
@@ -75,11 +79,11 @@ function AccountPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
               <input
@@ -87,7 +91,7 @@ function AccountPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <button
@@ -100,12 +104,14 @@ function AccountPage() {
           </form>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="font-semibold text-gray-800 mb-4">Change Password</h2>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+          <h2 className="font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            Change Password
+          </h2>
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Current Password
               </label>
               <input
@@ -113,11 +119,11 @@ function AccountPage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 New Password
               </label>
               <input
@@ -125,7 +131,7 @@ function AccountPage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <button

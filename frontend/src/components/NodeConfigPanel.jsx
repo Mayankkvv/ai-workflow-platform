@@ -14,8 +14,10 @@ function NodeConfigPanel({
 
   if (!selectedNode) {
     return (
-      <div className="w-72 border-l border-gray-200 bg-white p-4">
-        <p className="text-sm text-gray-400">Click a node to configure it.</p>
+      <div className="w-72 border-l border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <p className="text-sm text-gray-400 dark:text-gray-500">
+          Click a node to configure it.
+        </p>
       </div>
     );
   }
@@ -29,13 +31,18 @@ function NodeConfigPanel({
 
   const isWebhookTrigger = selectedNode.data.nodeType === "webhookTrigger";
   const isRestApiCall = selectedNode.data.nodeType === "restApiCall";
-  const webhookUrl = webhookToken ? `http://localhost:5000/hooks/${webhookToken}` : "";
+  const webhookUrl = webhookToken
+    ? `http://localhost:5000/hooks/${webhookToken}`
+    : "";
 
   const headers = config.headers || {};
 
   const handleAddHeader = () => {
     if (!newHeaderKey.trim()) return;
-    handleFieldChange("headers", { ...headers, [newHeaderKey.trim()]: newHeaderValue });
+    handleFieldChange("headers", {
+      ...headers,
+      [newHeaderKey.trim()]: newHeaderValue,
+    });
     setNewHeaderKey("");
     setNewHeaderValue("");
   };
@@ -47,10 +54,15 @@ function NodeConfigPanel({
   };
 
   return (
-    <div className="w-72 border-l border-gray-200 bg-white p-4 overflow-y-auto">
+    <div className="w-72 border-l border-gray-200 bg-white p-4 overflow-y-auto dark:border-gray-800 dark:bg-gray-900">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold text-gray-800">{selectedNode.data.label}</h3>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-sm">
+        <h3 className="font-semibold text-gray-800 dark:text-gray-100">
+          {selectedNode.data.label}
+        </h3>
+        <button
+          onClick={onClose}
+          className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
+        >
           ✕
         </button>
       </div>
@@ -58,13 +70,13 @@ function NodeConfigPanel({
       <div className="flex items-center gap-2 mb-4">
         <button
           onClick={() => onDuplicateNode(selectedNode.id)}
-          className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded"
+          className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded"
         >
           ⧉ Duplicate
         </button>
         <button
           onClick={() => onDeleteNode(selectedNode.id)}
-          className="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded"
+          className="text-xs bg-red-50 dark:bg-red-950 hover:bg-red-100 dark:hover:bg-red-900 text-red-600 dark:text-red-300 px-2 py-1 rounded"
         >
           🗑 Delete Node
         </button>
@@ -72,13 +84,15 @@ function NodeConfigPanel({
 
       {isWebhookTrigger && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Webhook URL</label>
-          <div className="text-xs bg-gray-50 border border-gray-200 rounded-md p-2 break-all text-gray-600">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Webhook URL
+          </label>
+          <div className="text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-2 break-all text-gray-600 dark:text-gray-100">
             {webhookUrl}
           </div>
           <button
             onClick={() => navigator.clipboard.writeText(webhookUrl)}
-            className="mt-2 text-xs text-blue-600 hover:text-blue-800"
+            className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
           >
             Copy URL
           </button>
@@ -88,11 +102,13 @@ function NodeConfigPanel({
       {isRestApiCall && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Method
+            </label>
             <select
               value={config.method || "GET"}
               onChange={(e) => handleFieldChange("method", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {["GET", "POST", "PUT", "PATCH", "DELETE"].map((m) => (
                 <option key={m} value={m}>
@@ -103,30 +119,34 @@ function NodeConfigPanel({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              URL
+            </label>
             <input
               type="text"
               value={config.url || ""}
               onChange={(e) => handleFieldChange("url", e.target.value)}
               placeholder="https://api.example.com/endpoint"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Headers</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Headers
+            </label>
             <div className="space-y-1 mb-2">
               {Object.entries(headers).map(([key, value]) => (
                 <div
                   key={key}
-                  className="flex items-center justify-between text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1"
+                  className="flex items-center justify-between text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-1"
                 >
-                  <span className="truncate">
+                  <span className="truncate text-gray-600 dark:text-gray-100">
                     <strong>{key}</strong>: {value}
                   </span>
                   <button
                     onClick={() => handleRemoveHeader(key)}
-                    className="text-red-500 hover:text-red-700 ml-2"
+                    className="text-red-500 dark:text-red-300 hover:text-red-700 dark:hover:text-red-400 ml-2"
                   >
                     ✕
                   </button>
@@ -139,18 +159,18 @@ function NodeConfigPanel({
                 value={newHeaderKey}
                 onChange={(e) => setNewHeaderKey(e.target.value)}
                 placeholder="Key"
-                className="w-1/2 px-2 py-1 border border-gray-300 rounded text-xs"
+                className="w-1/2 px-2 py-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded text-xs"
               />
               <input
                 type="text"
                 value={newHeaderValue}
                 onChange={(e) => setNewHeaderValue(e.target.value)}
                 placeholder="Value"
-                className="w-1/2 px-2 py-1 border border-gray-300 rounded text-xs"
+                className="w-1/2 px-2 py-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded text-xs"
               />
               <button
                 onClick={handleAddHeader}
-                className="text-xs bg-gray-200 hover:bg-gray-300 px-2 rounded"
+                className="text-xs bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 rounded"
               >
                 +
               </button>
@@ -158,7 +178,7 @@ function NodeConfigPanel({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Body (JSON, optional)
             </label>
             <textarea
@@ -166,19 +186,21 @@ function NodeConfigPanel({
               onChange={(e) => handleFieldChange("body", e.target.value)}
               placeholder='{"key": "{{input.payload.message}}"}'
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
       )}
 
       {fields.length === 0 && !isWebhookTrigger && !isRestApiCall ? (
-        <p className="text-sm text-gray-400">This node has no configurable settings.</p>
+        <p className="text-sm text-gray-400">
+          This node has no configurable settings.
+        </p>
       ) : (
         <div className="space-y-4">
           {fields.map((field) => (
             <div key={field.key}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {field.label}
               </label>
 
@@ -188,7 +210,7 @@ function NodeConfigPanel({
                   onChange={(e) => handleFieldChange(field.key, e.target.value)}
                   placeholder={field.placeholder}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               )}
 
@@ -198,7 +220,7 @@ function NodeConfigPanel({
                   value={config[field.key] || ""}
                   onChange={(e) => handleFieldChange(field.key, e.target.value)}
                   placeholder={field.placeholder}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               )}
 
@@ -206,7 +228,7 @@ function NodeConfigPanel({
                 <select
                   value={config[field.key] || field.options[0]}
                   onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {field.options.map((option) => (
                     <option key={option} value={option}>

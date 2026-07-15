@@ -63,17 +63,17 @@ function ExecutionHistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Link
               to={`/workflows/${id}`}
-              className="text-sm text-gray-500 hover:text-gray-800"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             >
               ← Back to builder
             </Link>
-            <h1 className="text-xl font-bold text-gray-800">
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">
               Execution History
             </h1>
           </div>
@@ -90,7 +90,7 @@ function ExecutionHistoryPage() {
         {isLoading ? (
           <ExecutionHistorySkeleton />
         ) : executions.length === 0 ? (
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             No executions yet. Run this workflow from the builder to see results
             here.
           </p>
@@ -99,11 +99,11 @@ function ExecutionHistoryPage() {
             {executions.map((execution) => (
               <div
                 key={execution._id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden"
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden"
               >
                 <button
                   onClick={() => toggleExpanded(execution._id)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50"
+                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -117,24 +117,24 @@ function ExecutionHistoryPage() {
                     >
                       {execution.status}
                     </span>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
                       {new Date(execution.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <span className="text-gray-400 text-sm">
+                  <span className="text-gray-400 dark:text-gray-500 text-sm">
                     {expandedId === execution._id ? "Hide" : "View"} details
                   </span>
                 </button>
 
                 {expandedId === execution._id && (
-                  <div className="border-t border-gray-100 px-4 py-3 space-y-3 bg-gray-50">
+                  <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-3 space-y-3 bg-gray-50 dark:bg-gray-800">
                     {execution.nodeResults.map((result, index) => (
                       <div
                         key={`${result.nodeId}-${index}`}
-                        className="text-sm bg-white border border-gray-200 rounded-md p-3"
+                        className="text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-3"
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium text-gray-800">
+                          <span className="font-medium text-gray-800 dark:text-gray-100">
                             {getNodeLabel(result.type)}
                           </span>
                           <span
@@ -149,7 +149,7 @@ function ExecutionHistoryPage() {
                         </div>
 
                         {result.status === "success" ? (
-                          <pre className="text-xs text-gray-600 whitespace-pre-wrap break-words bg-gray-50 p-2 rounded">
+                          <pre className="text-xs text-gray-300 whitespace-pre-wrap break-words bg-gray-800 p-2 rounded">
                             {JSON.stringify(result.output, null, 2)}
                           </pre>
                         ) : (

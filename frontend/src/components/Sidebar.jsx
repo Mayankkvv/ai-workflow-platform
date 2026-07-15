@@ -1,7 +1,19 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Plug, UserRound, LogOut, Workflow, Menu, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  Plug,
+  UserRound,
+  LogOut,
+  Workflow,
+  Menu,
+  X,
+  Sun,
+  Moon,
+} from "lucide-react";
 import useAuthStore from "../store/authStore.js";
+import { useTheme } from "../context/ThemeContext.jsx";
+import ConfirmDialog from "./ConfirmDialog.jsx";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -15,7 +27,7 @@ function Brand() {
       <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
         <Workflow className="w-4 h-4 text-white" />
       </div>
-      <span className="font-bold text-gray-800 text-sm">AI Workflows</span>
+      <span className="font-bold text-gray-800 dark:text-gray-100 text-sm">AI Workflows</span>
     </div>
   );
 }
@@ -33,8 +45,8 @@ function NavLinks({ onNavigate }) {
               onClick={onNavigate}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
               }`}
             >
               <Icon className="w-[18px] h-[18px]" />
@@ -47,58 +59,104 @@ function NavLinks({ onNavigate }) {
   );
 }
 
-function Sidebar() {
-  const clearAuth = useAuthStore((state) => state.clearAuth);
-
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
   return (
-    <nav className="hidden md:flex flex-col h-screen fixed left-0 top-0 w-64 bg-white border-r border-gray-200 py-6 px-3 z-30">
-      <div className="px-3 mb-8">
-        <Brand />
-      </div>
-
-      <div className="flex-1">
-        <NavLinks />
-      </div>
-
-      <div className="pt-4 border-t border-gray-100">
-        <button
-          onClick={clearAuth}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-        >
-          <LogOut className="w-[18px] h-[18px]" />
-          Log out
-        </button>
-      </div>
-    </nav>
+    <button
+      onClick={toggleTheme}
+      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors"
+    >
+      {theme === "dark" ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+      {theme === "dark" ? "Light mode" : "Dark mode"}
+    </button>
   );
 }
 
-export function MobileNav() {
-  const [isOpen, setIsOpen] = useState(false);
+function Sidebar() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
-    <div className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-200">
-      <div className="flex items-center justify-between px-4 h-14">
-        <Brand />
-        <button onClick={() => setIsOpen((o) => !o)} className="text-gray-500 p-1">
-          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
+    <>
+      <nav className="hidden md:flex flex-col h-screen fixed left-0 top-0 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 py-6 px-3 z-30">
+        <div className="px-3 mb-8">
+          <Brand />
+        </div>
 
-      {isOpen && (
-        <div className="border-t border-gray-100 px-4 py-2 space-y-1">
-          <NavLinks onNavigate={() => setIsOpen(false)} />
+        <div className="flex-1">
+          <NavLinks />
+        </div>
+
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-1">
+          <ThemeToggle />
           <button
-            onClick={clearAuth}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
+            onClick={() => setShowLogoutConfirm(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors"
           >
             <LogOut className="w-[18px] h-[18px]" />
             Log out
           </button>
         </div>
+      </nav>
+
+      {showLogoutConfirm && (
+        <ConfirmDialog
+          title="Log out?"
+          message="You'll need to log in again to access your workflows."
+          confirmLabel="Log out"
+          variant="default"
+          onConfirm={clearAuth}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
       )}
-    </div>
+    </>
+  );
+}
+
+export function MobileNav() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+
+  return (
+    <>
+      <div className="md:hidden sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between px-4 h-14">
+          <Brand />
+          <button
+            onClick={() => setIsOpen((o) => !o)}
+            className="text-gray-500 dark:text-gray-400 p-1"
+          >
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {isOpen && (
+          <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-2 space-y-1">
+            <NavLinks onNavigate={() => setIsOpen(false)} />
+            <ThemeToggle />
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              <LogOut className="w-[18px] h-[18px]" />
+              Log out
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showLogoutConfirm && (
+        <ConfirmDialog
+          title="Log out?"
+          message="You'll need to log in again to access your workflows."
+          confirmLabel="Log out"
+          variant="default"
+          onConfirm={clearAuth}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      )}
+    </>
   );
 }
 
