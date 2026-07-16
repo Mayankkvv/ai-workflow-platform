@@ -32,6 +32,7 @@ import {
   Settings2,
   Rocket,
 } from "lucide-react";
+import TemplatesModal from "../components/TemplatesModal.jsx";
 
 function StatCard({ icon: Icon, label, value, sublabel, accent }) {
   return (
@@ -90,6 +91,7 @@ function DashboardPage() {
   const [descriptionTarget, setDescriptionTarget] = useState(null);
   const [duplicatingId, setDuplicatingId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -249,14 +251,22 @@ function DashboardPage() {
                 Here's what's happening with your workflows.
               </p>
             </div>
-            <button
-              onClick={handleCreateWorkflow}
-              disabled={isCreating}
-              className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              <Plus className="w-4 h-4" />
-              {isCreating ? "Creating..." : "New Workflow"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCreateWorkflow}
+                disabled={isCreating}
+                className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" />
+                {isCreating ? "Creating..." : "New Workflow"}
+              </button>
+              <button
+                onClick={() => setShowTemplates(true)}
+                className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Browse Templates
+              </button>
+            </div>
           </div>
 
           {isLoading ? (
@@ -314,13 +324,21 @@ function DashboardPage() {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={handleCreateWorkflow}
-                disabled={isCreating}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-              >
-                {isCreating ? "Creating..." : "Create your first workflow"}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCreateWorkflow}
+                  disabled={isCreating}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isCreating ? "Creating..." : "Create your first workflow"}
+                </button>
+                <button
+                  onClick={() => setShowTemplates(true)}
+                  className="border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Browse Templates
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -517,6 +535,10 @@ function DashboardPage() {
           onCancel={() => setDeleteTarget(null)}
           isLoading={isProcessing}
         />
+      )}
+
+      {showTemplates && (
+        <TemplatesModal onClose={() => setShowTemplates(false)} />
       )}
     </div>
   );

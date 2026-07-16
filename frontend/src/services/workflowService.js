@@ -55,3 +55,13 @@ export const getRecentExecutions = async () => {
   const response = await api.get("/workflows/executions/recent");
   return response.data;
 };
+
+export const createWorkflowFromTemplate = async (name, description, nodes, edges) => {
+  const response = await api.post("/workflows/from-template", {
+    name,
+    description,
+    nodes,
+    edges,
+  });
+  return response.data;
+};

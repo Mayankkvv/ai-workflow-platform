@@ -5,10 +5,44 @@ import {
   createWorkflowSchema,
   updateWorkflowSchema,
   renameWorkflowSchema,
+  createFromTemplateSchema,
 } from "../validators/workflowValidator.js";
 import workflowQueue from "../queues/workflowQueue.js";
 import redisConnection from "../config/redis.js";
 import crypto from "crypto";
+
+
+export const createWorkflowFromTemplate = async (req, res) => {
+  try {
+    const parsed = createFromTemplateSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const { name, description, nodes, edges } = parsed.data;
+
+    const newWorkflow = await Workflow.create({
+      name,
+      description,
+      userId: req.userId,
+      nodes,
+      edges,
+      isActive: false,
+    });
+
+    return res.status(201).json({
+      message: "Workflow created from template",
+      workflow: newWorkflow,
+    });
+  } catch (error) {
+    console.error("Create from template error:", error.message);
+    return res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+};
 
 export const createWorkflow = async (req, res) => {
   try {

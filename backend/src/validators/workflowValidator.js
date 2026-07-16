@@ -33,3 +33,10 @@ export const renameWorkflowSchema = z.object({
   name: z.string().trim().min(1, "Workflow name is required"),
   description: z.string().trim().optional(),
 });
+
+export const createFromTemplateSchema = z.object({
+  name: z.string().trim().min(1, "Workflow name is required"),
+  description: z.string().trim().optional().default(""),
+  nodes: z.array(nodeSchema),
+  edges: z.array(edgeSchema),
+});

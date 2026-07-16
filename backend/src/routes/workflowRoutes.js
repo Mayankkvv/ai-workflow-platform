@@ -12,6 +12,7 @@ import {
   getRecentExecutions,
   renameWorkflow,
   duplicateWorkflow,
+  createWorkflowFromTemplate,
 } from "../controllers/workflowController.js";
 
 const router = express.Router();
@@ -19,6 +20,7 @@ const router = express.Router();
 router.use(protect);
 
 router.get("/executions/recent", getRecentExecutions);
+router.post("/from-template", createWorkflowFromTemplate);
 router.post("/", createWorkflow);
 router.get("/", getWorkflows);
 router.get("/:id", getWorkflowById);
