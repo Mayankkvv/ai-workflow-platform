@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { FullPageSkeleton } from "../components/Skeleton.jsx";
 import { useToast } from "../context/ToastContext.jsx";
+import WorkflowNode from "../components/WorkflowNode.jsx";
 import {
   ReactFlow,
   Background,
@@ -30,6 +31,7 @@ import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import { useWorkflowSocket } from "../hooks/useWorkflowSocket.js";
 
 const MAX_HISTORY = 50;
+const nodeTypes = { workflowNode: WorkflowNode };
 
 function WorkflowBuilderPage() {
   const { id } = useParams();
@@ -186,7 +188,7 @@ function WorkflowBuilderPage() {
 
     const newNode = {
       id: crypto.randomUUID(),
-      type: "default",
+      type: "workflowNode",
       position: {
         x: 100 + Math.random() * 300,
         y: 100 + Math.random() * 300,
@@ -331,7 +333,13 @@ function WorkflowBuilderPage() {
           )}
           {error && <span className="text-sm text-red-600">{error}</span>} */}
 
-          <button onClick={handleUndo}>↶ Undo</button>
+          <button
+            onClick={handleUndo}
+            disabled={history.past.length === 0}
+            className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 disabled:opacity-30 disabled:hover:text-gray-600 px-2"
+          >
+            ↶ Undo
+          </button>
           <button
             onClick={handleRedo}
             disabled={history.future.length === 0}
@@ -401,6 +409,7 @@ function WorkflowBuilderPage() {
           <ReactFlow
             nodes={nodes}
             edges={edges}
+            nodeTypes={nodeTypes}
             onNodesChange={handleNodesChangeWithHistory}
             onEdgesChange={handleEdgesChangeWithHistory}
             onConnect={onConnect}

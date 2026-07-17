@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "../context/ToastContext.jsx";
 import {
@@ -21,8 +21,10 @@ const PROVIDERS = [
   { key: "slack", label: "Slack" },
 ];
 
+let lastHandledIntegrationCallback = null;
+
 function IntegrationsPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [integrations, setIntegrations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [discordUrlInput, setDiscordUrlInput] = useState("");
@@ -32,24 +34,43 @@ function IntegrationsPage() {
   const [testResults, setTestResults] = useState({});
   const toast = useToast();
 
-  const fetchIntegrations = async () => {
+  const fetchIntegrations = useCallback(async () => {
     try {
       const data = await getIntegrations();
       setIntegrations(data.integrations);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchIntegrations();
+  }, [fetchIntegrations]);
 
-    if (searchParams.get("connected")) {
-      toast.success(`${searchParams.get("connected")} connected successfully`);
-    } else if (searchParams.get("error")) {
-      toast.error(`Failed to connect ${searchParams.get("error")}`);
+  useEffect(() => {
+    const connected = searchParams.get("connected");
+    const error = searchParams.get("error");
+    const callbackKey = connected
+      ? `connected:${connected}`
+      : error
+        ? `error:${error}`
+        : null;
+
+    if (!callbackKey) {
+      lastHandledIntegrationCallback = null;
+      return;
     }
-  }, [searchParams, toast]);
+
+    if (lastHandledIntegrationCallback !== callbackKey) {
+      lastHandledIntegrationCallback = callbackKey;
+      if (connected) {
+        toast.success(`${connected} connected successfully`);
+      } else {
+        toast.error(`Failed to connect ${error}`);
+      }
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams, toast]);
 
   const getIntegration = (provider) =>
     integrations.find((i) => i.provider === provider);

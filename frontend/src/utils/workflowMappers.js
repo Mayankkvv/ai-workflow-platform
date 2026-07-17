@@ -1,9 +1,22 @@
 import { getNodeLabel } from "./nodeTypes.js";
 
+// export const toReactFlowNodes = (backendNodes) => {
+//   return backendNodes.map((node) => ({
+//     id: node.nodeId,
+//     type: "default",
+//     position: node.position,
+//     data: {
+//       label: getNodeLabel(node.type),
+//       nodeType: node.type,
+//       config: node.data,
+//     },
+//   }));
+// };
+
 export const toReactFlowNodes = (backendNodes) => {
   return backendNodes.map((node) => ({
     id: node.nodeId,
-    type: "default",
+    type: "workflowNode",
     position: node.position,
     data: {
       label: getNodeLabel(node.type),
