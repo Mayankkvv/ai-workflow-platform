@@ -1,4 +1,4 @@
-import Workflow from "../models/workflow.js";
+import Workflow from "../models/Workflow.js";
 import workflowQueue from "../queues/workflowQueue.js";
 
 export const receiveWebhook = async (req, res) => {

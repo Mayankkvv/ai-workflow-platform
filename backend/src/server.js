@@ -20,9 +20,18 @@ const httpServer = http.createServer(app);
 
 initSocket(httpServer);
 
+// Deliberate deployment trade-off: on the free tier, the worker runs inside
+// this same process instead of as a separate service, to avoid a second
+// paid Render service. Locally, RUN_WORKER_IN_PROCESS is unset, so the
+// worker still runs separately via `npm run worker`, exactly as taught
+// in Step 16.
+if (process.env.RUN_WORKER_IN_PROCESS === "true") {
+  await import("./workers/workflowWorker.js");
+}
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );

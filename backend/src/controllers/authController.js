@@ -14,6 +14,15 @@ import {
   generateRefreshToken,
 } from "../services/tokenService.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 export const signup = async (req, res) => {
   try {
     const parsed = signupSchema.safeParse(req.body);
@@ -96,12 +105,7 @@ export const login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", refreshToken, cookieOptions);
 
     return res.status(200).json({
       message: "Login successful",
@@ -157,12 +161,7 @@ export const refresh = async (req, res) => {
     user.refreshToken = newRefreshToken;
     await user.save();
 
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", newRefreshToken, cookieOptions);
 
     return res.status(200).json({
       message: "Token refreshed successfully",
@@ -200,8 +199,8 @@ export const logout = async (req, res) => {
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "strict",
     });
 
     return res.status(200).json({
@@ -231,7 +230,10 @@ export const forgotPassword = async (req, res) => {
 
     if (user) {
       const rawToken = crypto.randomBytes(32).toString("hex");
-      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(rawToken)
+        .digest("hex");
 
       user.passwordResetToken = hashedToken;
       user.passwordResetExpires = new Date(Date.now() + 30 * 60 * 1000);
@@ -247,11 +249,14 @@ export const forgotPassword = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: "If an account with that email exists, a reset link has been sent.",
+      message:
+        "If an account with that email exists, a reset link has been sent.",
     });
   } catch (error) {
     console.error("Forgot password error:", error.message);
-    return res.status(500).json({ message: "Something went wrong. Please try again." });
+    return res
+      .status(500)
+      .json({ message: "Something went wrong. Please try again." });
   }
 };
 
@@ -275,7 +280,9 @@ export const resetPassword = async (req, res) => {
     }).select("+password +refreshToken");
 
     if (!user) {
-      return res.status(400).json({ message: "Reset link is invalid or has expired" });
+      return res
+        .status(400)
+        .json({ message: "Reset link is invalid or has expired" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -286,9 +293,13 @@ export const resetPassword = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ message: "Password has been reset successfully" });
+    return res
+      .status(200)
+      .json({ message: "Password has been reset successfully" });
   } catch (error) {
     console.error("Reset password error:", error.message);
-    return res.status(500).json({ message: "Something went wrong. Please try again." });
+    return res
+      .status(500)
+      .json({ message: "Something went wrong. Please try again." });
   }
 };

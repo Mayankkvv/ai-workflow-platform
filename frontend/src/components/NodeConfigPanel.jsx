@@ -32,7 +32,7 @@ function NodeConfigPanel({
   const isWebhookTrigger = selectedNode.data.nodeType === "webhookTrigger";
   const isRestApiCall = selectedNode.data.nodeType === "restApiCall";
   const webhookUrl = webhookToken
-    ? `http://localhost:5000/hooks/${webhookToken}`
+    ? `${import.meta.env.VITE_BACKEND_URL}/hooks/${webhookToken}`
     : "";
 
   const headers = config.headers || {};
