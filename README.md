@@ -2,7 +2,7 @@
 
 A full-stack, production-style workflow automation platform (in the spirit of Zapier / n8n) where users visually design pipelines — trigger, AI processing, storage, notification — using a drag-and-drop canvas, then execute them through a background job engine with real AI integration and real third-party actions.
 
-**[Live Demo](#) · [API Base URL](#)** *(replace with your deployed links)*
+**[Live Demo](https://ai-workflow-platform-three.vercel.app/)**
 
 > Built end-to-end as a solo project to go deep on production backend architecture (auth, queues, OAuth, real-time systems) rather than just CRUD — not a tutorial clone.
 
